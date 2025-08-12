@@ -40,4 +40,27 @@
             }
         </style>
     </head>
+
+    <body class="bg-gray-50">
+        <!-- header McDonal's -->
+        <header class="mcdo-red text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-3xl font-bold">Brasserie Claouey</div>
+                        <div class="text-sm opacity-90">Commande rapide</div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- statut connexion -->
+                        <div id="connection-status" class="bg-green-500 px-3 py-1 rounded-full text-sm">En ligne</div>
+                        <!-- Mode de service actuel -->
+                        <div id="service-mode-indicator" class="bg-yellow-500 text-black px-4 py-2 rounded-lg hidden">
+                            <i class="fas-fa-info-circle mr-2"></i>
+                            <span id="service-mode-text"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </body>
 </html>
