@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Brasserie Claouey - Commande</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <script src="../static/js/config.js"></script>
+        <style>
+            /* style McDonald's custom */
+            .mcdo-red { background-color: #da020e; }
+            .mcdo-yellow { background-color: #ffc72c; }
+            .mcdo-green { background-color: #27ae60; }
+            .product-card:hover { transform: scale(1.02); }
+            .product-card { transition: all 0.3s ease; }
+
+            /* Animation */
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .slide-in { animation: slideIn 0.3s ease-out; }
+
+            /* Interface tactile optimisé pour 22" */
+            body { font-size: 18px; }
+            .btn-touch {
+                min-height: 80px;
+                font-size: 20px;
+                font-weight: bold;
+            }
+
+            /* style panier flottant */
+            .cart-floating {
+                position: fixed;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 1000;
+            }
+        </style>
+    </head>
+</html>
