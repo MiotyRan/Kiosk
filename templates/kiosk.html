@@ -367,5 +367,837 @@
             <!-- toasts generes dynamiquement -->
          </div>
 
+        <script>
+            // Configuration et etat global
+            let currentStep = 'service-mode';
+            let serviceMode = null;
+            let tableNumber = null;
+            let customerInfo = {};
+            let selectedAllergens = [];
+            let cart = [];
+            let categories = [];
+            let products = [];
+            let selectedPayementMethod = null;
+            let currentOrder = null;
+
+            // configuration des allergènes (14 obligatoires UE)
+            const ALLARGENS = {
+                1: {code: 'GLU', name: 'Gluten', icon:'🌾'},
+                2: {code: 'CRU', name: 'Crustcés', icon: '🦐'},
+                3: {code: 'EGG', name: 'Oeufs', icon: '🥚'},
+                4: {code: 'FSH', name: 'Poisson', icon: '🐟'},
+                5: {code: 'PNT', name: 'Arachides', icon: '🥜'},
+                6: {code: 'SOY', name: 'Soja', icon: '🌱'},
+                7: {code: 'MLK', name: 'Lait', icon: '🥛'},
+                8: {code: 'NUT', name: 'Fruits à coq', icon: '🌰'},
+                9: {code: 'CEL', name: 'Céléri', icon: '🥬'},
+                10: {code: 'MUS', name: 'Moutarde', icon: '🟡'},
+                11: {code: 'SES', name: 'Graines de sésame', icon: '⚪'},
+                12: {code: 'SUL', name: 'Sulfites', icon: '🧪'},
+                13: {code: 'LUP', name: 'Lupin', icon: '🌿'},
+                14: {code: 'MOL', name: 'Mollusques', icon: '🦪'},
+            }
+
+            // limites business
+            const LIMIT = {
+                max_items_per_order: 50,
+                max_quantity_per_item: 20,
+                tva: 0.20
+            }
+
+            // API URL (depuis config.js ou fallback)
+            const API_URL = window.CONFIG?.API_URL || 'http://localhost:8000';
+
+            // initialisation
+            document.addEventListener('DOMContentLoaded', () => {
+                showStep('step-service-mode');
+                loadCategoriesAndProducts();
+                generateTableGrid();
+                generateAllergenGrid();
+                updateCarteUI();
+
+                // event listener
+                setupEventListeners();
+            });
+
+            // configuration des event listeners
+            function setupEventListeners() {
+                // validation du nom client
+                document.getElementById('customerName').addEventListener('input', updateCustomerInfo);
+                document.getElementById('customerEmail').addEventListener('input', updateCustomerInfo);
+                document.getElementById('customerPhone').addEventListener('input', updateCustomerInfo);
+            }
+
+            // Etape 1: Mode de service
+            function selectServiceMode(mode) {
+                serviceMode = mode;
+                updateStepIndicator(1);
+
+                if (mode === 'sur_place') {
+                    showStep('step-table-selection');
+                } else {
+                    // à emporter, passser aux allergenes
+                    showStep('step-allergens');
+                }
+
+                updateServiceModeIndicator();
+            }
+
+            function updateServiceModeIndicator() {
+                const indicator = document.getElementById('service-mode-indicator');
+                const text = document.getElementById('service-mode-text')
+
+                if (serviceMode) {
+                    indicator.classList.remove('hidden');
+                    if (serviceMode === 'sur_place') {
+                        text.textContent = tableNumber ? `Sur place - Table ${tableNumber}` : 'Sur place';
+                    } else {
+                        text.textContent = 'A emporter';
+                    }
+                }
+            }
+
+            // generation grille des tables
+            function generateTableGrid() {
+                const grid = document.getElementById('table-grid');
+                grid.innerHTML = '';
+
+                // 20 tables 
+                for (let i = 1; i <= 20; i++) {
+                    const tableBtn = document.createElement('button');
+                    tableBtn.className = 'btn-touch bg-white hover:bg-yellow-100 border-2 hover:border-yellow-400 rounded-xl p-6 text-center transition-all';
+                    tableBtn.onclick = () => selectTable(i);
+                    tableBtn.innerHTML = `
+                        <div class="text-3xl mb-2">🪑</div>
+                        <div class="font-bold">Table ${i}</div>
+                        <div class="text-sm text-gray-500">Disponible</div>
+                    `;
+                    grid.appendChild(tableBtn);
+                }
+            }
+
+            function selectTable(number) {
+                tableNumber = number;
+                updateServiceModeIndicator();
+                showStep('step-allergens');
+            } 
+
+            function backToServiceMode() {
+                serviceMode = null;
+                tableNumber = null;
+                showStep('step-service-mode');
+                updateServiceModeIndicator(0);
+            }
+
+            // Etape 2: Allergènes
+            function generateAllergenGrid() {
+                const grid = document.getElementById('allergen-grid');
+                grid.innerHTML = '';
+
+                Object.entries(ALLARGENS).forEach(([id, allergen]) => {
+                    const allergenDiv = document.createElement('label');
+                    allergenDiv.className = 'flex items-center p-4 border-2 rounded-lg hover:bg-red-50 cursor-pointer transition-all';
+                    allergenDiv.innerHTML = `
+                        <input type="checkbox" class="allergen-checkbox mr-3 w-5 h-5" 
+                            value="${id}" onchange="toggleAllergen(${id})">
+                        <span class="text-2xl mr-3">${allergen.icon}</span>
+                        <span class="font-medium">${allergen.name}</span>
+                    `;
+                    grid.appendChild(allergenDiv);
+                });
+            }
+            
+            function toggleAllergen(id) {
+                const checkbox = document.querySelector(`input[value="${id}"]`);
+                if (checkbox.checked) {
+                    if (!selectedAllergens.includes(id)) {
+                        selectedAllergens.push(id);
+                    }
+                } else {
+                    selectedAllergens = selectedAllergens.filter(a => a != id);
+                }
+            }
+
+            function skipAllergens() {
+                selectedAllergens = [];
+                showStep('step-menu');
+                updateServiceModeIndicator(2);
+            }
+
+            function confirmAllergens() {
+                showToast(`${selectedAllergens.length} allergies sélectionnées`, 'info');
+                showStep('step-menu');
+                updateServiceModeIndicator(2);
+                // filtrer les produits
+                filterProductsByAllergen();
+            }
+
+            // == Chargement des données ==
+            async function loadCategoriesAndProducts() {
+                try {
+                    // charger categories
+                    const categoriesResponse = await fetch(`${API_URL}/api/catalog/categories`);
+                    if (categoriesResponse.ok) {
+                        const categoriesData = await categoriesResponse.json();
+                        categories = categoriesData.categories || categoriesData;
+                        displayCategories();
+                    }
+
+                    // charger produits 
+                    const productsResponse = await fetch(`${API_URL}/api/catalog/products`);
+                    if (productsResponse.ok) {
+                        const productsData = await productsResponse.json();
+                        products = productsData.products || productsData;
+                        displayProducts();
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement données:', error);
+                    showToast('Erreur de chargement du catalogue', 'error');
+                }
+            }
+
+            // affichage des catégories
+            function displayCategories() {
+                const sidebar = document.getElementById('categories-sidebar');
+                sidebar.innerHTML = '';
+
+                // bouton "Tous"
+                allBtn.className = 'w-full text-left p-4 rounded-lg bg-yellow-500 text-black font-bold';
+                allBtn.onclick = () => filterByCategory(null);
+                allBtn.innerHTML = '<i class="fas fa-th-large mr-3"></i>Tous nos produits';
+                sidebar.appendChild(allBtn);
+
+                categories.forEach(category => {
+                    const btn = document.createElement('button');
+                    btn.className = 'w-full text-left p-4 rounded-lg bg-white hover:bg-yellow-50 border hover:border-yellow-300 transition-all';
+                    btn.onclick = () => filterByCategory(category.id);
+                    btn.innerHTML = `
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-3">${category.icon || '🍴'}</span>
+                            <span class="font-semibold">${category.name}</span>
+                        </div>
+                    `;
+                    sidebar.appendChild(btn);
+                });
+            }
+
+            // affichage des produits
+            function displayProducts(filterderProducts = products) {
+                const grid = document.getElementById('products-grid');
+                grid.innerHTML = '';
+                
+                filteredProducts.forEach(product => {
+                    const productCard = document.createElement('div');
+                    productCard.className = 'product-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer';
+                    productCard.onclick = () => showProductModal(product);
+                    
+                    productCard.innerHTML = `
+                        <div class="relative">
+                            <img src="${product.image_url || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name)}" 
+                                alt="${product.name}" 
+                                class="w-full h-48 object-cover">
+                            ${product.is_popular ? '<div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">🔥 Populaire</div>' : ''}
+                            ${!product.is_safe ? '<div class="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs">⚠️</div>' : ''}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg mb-2">${product.name}</h3>
+                            <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'Délicieux produit de notre chef'}</p>
+                            
+                            ${product.allergens ? `
+                                <div class="flex flex-wrap gap-1 mb-3">
+                                    ${product.allergens.slice(0, 3).map(a => {
+                                        const allergen = ALLERGENS[a.allergen_id];
+                                        return `<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded" title="${allergen.name}">
+                                            ${allergen.icon} ${allergen.code}
+                                        </span>`;
+                                    }).join('')}
+                                    ${product.allergens.length > 3 ? '<span class="text-xs text-gray-500">+' + (product.allergens.length - 3) + '</span>' : ''}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-green-600">${(product.base_price || 0).toFixed(2)} €</span>
+                                <button class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg font-bold">
+                                    <i class="fas fa-plus mr-1"></i>Ajouter
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(productCard);
+                }); 
+            }
+
+            // filtrage par categorie
+            function filterByCategory(categoryId) {
+                const filtered = categoryId ? products.filter(p => p.category_id === categoryId) : products;
+                displayProducts(filtered);
+                
+                // Mettre à jour le titre
+                const title = document.getElementById('category-title');
+                if (categoryId) {
+                    const category = categories.find(c => c.id === categoryId);
+                    title.textContent = category ? category.name : 'Catégorie';
+                } else {
+                    title.textContent = 'Tous nos produits';
+                }
+                
+                // Mettre à jour les boutons catégories
+                document.querySelectorAll('#categories-sidebar button').forEach(btn => {
+                    btn.className = btn.className.replace('bg-yellow-500 text-black', 'bg-white hover:bg-yellow-50 border hover:border-yellow-300');
+                });
+            }
+
+            // fitrage par allergenes
+            function filterProductsByAllergens() {
+                if (selectedAllergens.length === 0) {
+                    displayProducts();
+                    return;
+                }
+                
+                // Simuler le filtrage (dans la vraie version, appel API)
+                const safeProducts = products.filter(product => {
+                    // Logique de filtrage basée sur les allergènes
+                    return !product.allergens || !product.allergens.some(a => 
+                        selectedAllergens.includes(a.allergen_id)
+                    );
+                });
+                
+                displayProducts(safeProducts);
+                
+                showToast(`${safeProducts.length} produits adaptés à vos allergies`, 'success');
+            }
+
+            // == Modal produit ==
+            function showProductModal(product) {
+                const modal = document.getElementById('product-modal');
+                const name = document.getElementById('modal-product-name');
+                const content = document.getElementById('modal-product-content');
+                
+                name.textContent = product.name;
+                
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <img src="${product.image_url || 'https://via.placeholder.com/400x300'}" 
+                                alt="${product.name}" 
+                                class="w-full rounded-lg">
+                        </div>
+                        <div>
+                            <p class="text-lg mb-4">${product.description || 'Délicieux produit de notre chef'}</p>
+                            <div class="text-3xl font-bold text-green-600 mb-6">${(product.base_price || 0).toFixed(2)} €</div>
+                            
+                            <!-- Quantité -->
+                            <div class="mb-6">
+                                <label class="block font-bold mb-2">Quantité</label>
+                                <div class="flex items-center space-x-4">
+                                    <button onclick="changeQuantity(-1)" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded">-</button>
+                                    <span id="modal-quantity" class="text-xl font-bold">1</span>
+                                    <button onclick="changeQuantity(1)" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded">+</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Instructions spéciales -->
+                            <div class="mb-6">
+                                <label class="block font-bold mb-2">Instructions spéciales</label>
+                                <textarea id="modal-instructions" class="w-full p-3 border rounded-lg" rows="3" 
+                                        placeholder="Exemple: Sans oignons, bien cuit, sauce à part..."></textarea>
+                            </div>
+                            
+                            <!-- Actions -->
+                            <div class="space-y-4">
+                                <button onclick="addProductToCart('${product.id}')" 
+                                        class="w-full btn-touch bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg py-4 text-xl font-bold">
+                                    <i class="fas fa-cart-plus mr-2"></i>
+                                    Ajouter au panier
+                                </button>
+                                <button onclick="closeProductModal()" 
+                                        class="w-full btn-touch bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg py-3">
+                                    Annuler
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                modal.classList.remove('hidden');
+            }
+
+            function closeProductModal() {
+                document.getElementById('product-modal').classList.add('hidden');
+            }
+
+            function changeQuantity(delta) {
+                const quantitySpan = document.getElementById('modal-quantity');
+                let quantity = parseInt(quantitySpan.textContent) + delta;
+
+                if (quantity < 1) quantity = 1;
+                if (quantity > LIMIT.max_quantity_per_item) quantity = LIMIT.max_quantity_per_item;
+
+                quantitySpan.textContent = quantity;
+            }
+
+            // == Gestion panier ==
+            function addProductToCart(productId) {
+                const product = products.find(p => p.id === productId);
+                if (!product) return;
+                
+                const quantity = parseInt(document.getElementById('modal-quantity').textContent);
+                const instructions = document.getElementById('modal-instructions').value;
+                
+                // Vérifier limite panier
+                if (cart.length >= LIMITS.max_items_per_order) {
+                    showToast(`Maximum ${LIMITS.max_items_per_order} articles différents`, 'error');
+                    return;
+                }
+                
+                // Vérifier allergènes
+                if (!checkAllergenSafety(product)) {
+                    return;
+                }
+                
+                const existingItem = cart.find(item => 
+                    item.product_id === productId && 
+                    item.special_instructions === instructions
+                );
+                
+                if (existingItem) {
+                    if (existingItem.quantity + quantity > LIMITS.max_quantity_per_item) {
+                        showToast(`Maximum ${LIMITS.max_quantity_per_item} unités par article`, 'error');
+                        return;
+                    }
+                    existingItem.quantity += quantity;
+                    existingItem.total_price = existingItem.quantity * existingItem.unit_price;
+                } else {
+                    cart.push({
+                        product_id: productId,
+                        product_name: product.name,
+                        quantity: quantity,
+                        unit_price: product.base_price || 0,
+                        total_price: (product.base_price || 0) * quantity,
+                        special_instructions: instructions || null,
+                        modifiers: [],
+                        variation_id: null,
+                        hiboutik_id: product.hiboutik_id || null
+                    });
+                }
+                
+                updateCartUI();
+                closeProductModal();
+                showToast(`${product.name} ajouté au panier`, 'success');
+            }
+
+            function checkAllergenSafety(product) {
+                if (selectedAllergens.length === 0) return true;
+
+                const productAllergens = product.allergen || [];
+                const conflicts = productAllergens.filter(pa =>
+                    selectedAllergens.includes(pa.allergen_id)
+                );
+
+                if (conflicts.length > 0) {
+                    const allergenName = conflicts.map(c => ALLARGENS[c.allergen_id].name);
+                    return confirm(
+                        `ATTENTION: Ce produit contient: ${allergenNames.join(', ')}\n\n` +
+                        `Voulez-vous quand même l'ajouter au panier ?`
+                    );
+                }
+                return true;
+            }
+
+            function updateCarteUI() {
+                const cartCount = document.getElementById('cart-count');
+                const cartTotal = document.getElementById('cart-total');
+                const cartItems = document.getElementById('cart-items');
+                const btnProceed = document.getElementById('btn-proceed-payment');
+
+                const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+                const total = cart.reduce((sum, item) => sum + item.total_price, 0);
+
+                cartCount.textContent = itemCount;
+                cartTotal.textContent = total.toFixed(2) + ' €';
+
+                // items
+                if (cart.length === 0) {
+                    cartItems.innerHTML = '<p class="text-gray-500 text-center py-4">Panier vide</p>';
+                    btnProceed.disabled = true;
+                } else {
+                    cartItems.innerHTML = cart.map((item, index) => `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <div class="flex-1">
+                                <div class="font-medium">${item.product_name}</div>
+                                <div class="text-sm text-gray-600">
+                                    ${item.quantity} x ${item.unit_price.toFixed(2)} €
+                                    ${item.special_instructions ? '<br><em>' + item.special_instructions + '</em>' : ''}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-semibold">${item.total_price.toFixed(2)} €</span>
+                                <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                    btnProceed.disabled = false;
+                }
+            }
+
+            function removeFromCart(index) {
+                const cart = document.getElementById('floating-cart');
+                // toggle visibility logic
+            }
+
+            function proceedToPayment() {
+                updateCustomerInfo();
+
+                if (!customerInfo.name) {
+                    showToast('Veuillez saisir votre nom', 'error');
+                    document.getElementById('customerName').focus();
+                    return;
+                }
+
+                showStep('step-payment');
+                updateStepIndicator(3);
+                updatePaymentSummary();
+            }
+
+            // == Etape 3: Paiement ==
+            function updatePaymentSummary() {
+                // mode de service
+                const serviceModeEl = document.getElementById('summary-service-mode');
+                serviceModeEl.textContent = serviceMode === 'sur_place' ? 'Sur place' : 'A emporter';
+
+                // table
+                const tableDiv = document.getElementById('summary-table');
+                if (serviceMode === 'sur_place' && tableNumber) {
+                    tableDiv.classList.remove('hidden');
+                    document.getElementById('summary-table-number').textContent = tableNumber;
+                }
+
+                // client
+                document.getElementById('summary-customer-name').textContent = customerInfo.name;
+
+                // items
+                const itemsDiv = document.getElementById('summary-items');
+                itemsDiv.innerHTML = cart.map(item => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                            <div class="font-medium">${item.product_name}</div>
+                            <div class="text-sm text-gray-600">Quantité: ${item.quantity}</div>
+                            ${item.special_instructions ? '<div class="text-xs text-blue-600"><em>' + item.special_instructions + '</em></div>' : ''}
+                        </div>
+                        <div class="font-bold">${item.total_price.toFixed(2)} €</div>
+                    </div>
+                `).join('');
+
+                // total
+                const totalTTC = cart.reduce((sum, item) => sum + item.total_price, 0);
+                const totalHT = totalTTC / (1 + LIMITS.tva_rate);
+                const tvaAmount = totalTTC - totalHT;
+
+                document.getElementById('summary-subtotal-ht').textContent = totalHT.toFixed(2) + ' €';
+                document.getElementById('summary-tva').textContent = tvaAmount.toFixed(2) + ' €';
+                document.getElementById('summary-total-tcc').textContent = totalTTC.toFixed(2) + ' €';
+            }
+
+            function selectedPayementMethod(method) {
+                selectedPayementMethod = method;
+
+                // update UI
+                const btnCash = document.getElementById('btn-payment-cash');
+                const btnCard = document.getElementById('btn-payment-card');
+                const btnProcess = document.getElementById('btn-process-order');
+                const btnProcessText = document.getElementById('btn-process-text');
+
+                btnCash.classList.toggle('border-green-400', method === 'cash');
+                btnCard.classList.toggle('border-green-400', method === 'card');
+
+                btnProcess.disabled = false;
+                btnProcessText.textContent = method === 'cash' ?
+                    'Valider et imprimer le ticket' :
+                    'Procéder au payment carte';
+            }
+
+            async function processOrder() {
+                if (!validateOrder()) return;
+
+                showProcessingModal();
+
+                try {
+                    // ÉTAPE 1: Créer la commande
+                    addProcessingStep('Création de la commande...');
+                    const order = await createOrder();
+                    currentOrder = order;
+                    
+                    addProcessingStep(`Commande ${order.order_number} créée`);
+                    
+                    // ÉTAPE 2: Traitement selon le mode de paiement
+                    if (selectedPaymentMethod === 'cash') {
+                        // Paiement espèces - Les 4 étapes Hiboutik
+                        await processCashPayment(order);
+                    } else {
+                        // Paiement carte - VIVA + Hiboutik
+                        await processCardPayment(order);
+                    }
+                    
+                    // Succès
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        showSuccessScreen();
+                        resetKiosk();
+                    }, 2000);
+                } catch (error) {
+                    console.error('Erreur traitement:', error);
+                    hideProcessingModal();
+                    showToast(error.message || 'Erreur lors du traitement', 'error');
+                }
+            }
+
+            function validateOrder() {
+                if (cart.length === 0) {
+                    showToast('Le panier est vide', 'error');
+                    return false;
+                }
+
+                if (!customerInfo.name) {
+                    showToast('Le nom du client est obligatoir', 'error');
+                    return false;
+                }
+
+                if (serviceMode === 'sur_place' && !tableNumber) {
+                    showToast('Numéro de table requis pour le service sur place');
+                    return false;
+                }
+
+                if (!selectedPayementMethod) {
+                    showToast('Sélectionnez un mode de paiement', 'error');
+                    return false;
+                }
+
+                return;
+            }
+
+            async function createOrder() {
+                const orderData = {
+                    items: cart,
+                    customer_name: customerInfo.name,
+                    customer_email: customerInfo.email || null,
+                    customer_phone: customerInfo.phone || null,
+                    service_mode: serviceMode,
+                    total_number: serviceMode === 'sur_place' ? tableNumber : null,
+                    order_type: 'kiosk',
+                    payment_method: selectedPayementMethod === 'cash' ? 'cash' : 'viva_card',
+                    special_notes: selectedAllergens.length > 0 ?
+                        `Allergies: ${selectedAllergens.map(id => ALLERGENS[id].name).join(', ')}` : null
+                };
+
+                const response = await fetch(`${API_URL}/api/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Erreur création commande');
+                }
+
+                return await response.json();
+            }
+
+            async function processCashPayment(order) {
+                addProcessingStep('Traitement paiement espèces...');
+                addProcessingStep('Création vente Hiboutik...');
+                addProcessingStep('Ajout produits + sortie stock...');
+                addProcessingStep('Enregistrement paiement ESP...');
+                addProcessingStep('Fermeture vente (caisse légale)...');
+                
+                // Simuler les appels (dans la vraie version, appel API)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                addProcessingStep('Ticket imprimé sur imprimante intégrée');
+                addProcessingStep('Ticket envoyé par email (si fourni)');
+            }
+
+            async function processCardPayment(order) {
+                addProcessingStep('Initialisation terminal VIVA...');
+                addProcessingStep('Traitement paiement carte...');
+            
+                // Simuler paiement VIVA
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            
+                addProcessingStep('Paiement carte validé');
+                addProcessingStep('Création vente Hiboutik...');
+                addProcessingStep('Ajout produits + sortie stock...');
+                addProcessingStep('Enregistrement paiement CB...');
+                addProcessingStep('Fermeture vente (caisse légale)...');
+                
+                addProcessingStep('Tickets imprimés (client + cuisine)');
+            }
+
+
+            // == Modales et UI ==
+            function showProcessingModal() {
+                const modal = document.getElementById('processing-modal');
+                const stepDisplay = document.getElementById('processing-steps');
+
+                stepDiv.innerHTML = '';
+                modal.classList.remove('hidden');
+            }
+
+            function hideProcessingModal() {
+                document.getElementById('processing-modal').classList.add('hidden');
+            }
+
+            function addProcessingStep(text) {
+                const stepsDiv = document.getElementById('processing-steps');
+                const step = document.createElement('div');
+                step.className = 'flex items-center space-x-2';
+                step.innerHTML = `
+                    <i class="fas fa-check text-green-500"></i>
+                    <span>${text}</span>
+                `;
+                stepsDiv.appendChild(step);
+            }
+
+            function showSuccessScreen() {
+                // Écran de remerciement
+                const main = document.querySelector('main');
+                main.innerHTML = `
+                    <div class="text-center py-20">
+                        <div class="text-8xl mb-8">🎉</div>
+                        <h1 class="text-4xl font-bold text-green-600 mb-4">Merci pour votre commande !</h1>
+                        <p class="text-xl text-gray-600 mb-8">
+                            ${currentOrder ? `Commande ${currentOrder.order_number}` : 'Votre commande'} a été enregistrée avec succès
+                        </p>
+                        <div class="space-y-4">
+                            <div class="text-lg">
+                                ${serviceMode === 'sur_place' 
+                                    ? `Nous vous servirons à la table ${tableNumber}`
+                                    : 'Votre commande sera prête sous peu'}
+                            </div>
+                            <div class="text-lg font-bold text-blue-600">
+                                ${selectedPaymentMethod === 'cash' 
+                                    ? 'Présentez-vous au comptoir avec votre ticket'
+                                    : 'Paiement confirmé - Restez à proximité'}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-12">
+                            <button onclick="resetKiosk()" 
+                                    class="btn-touch bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-4 rounded-xl text-xl font-bold">
+                                <i class="fas fa-home mr-2"></i>Nouvelle commande
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Auto-reset après 30 secondes
+                setTimeout(() => {
+                    resetKiosk();
+                }, 30000);
+            }
+
+            function resetKiosk() {
+                // Reset toutes les variables
+                currentStep = 'service-mode';
+                serviceMode = null;
+                tableNumber = null;
+                customerInfo = {};
+                selectedAllergens = [];
+                cart = [];
+                selectedPaymentMethod = null;
+                currentOrder = null;
+                
+                // Reset UI
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerEmail').value = '';
+                document.getElementById('customerPhone').value = '';
+                
+                // Recharger la page pour repartir de zéro
+                location.reload();
+            }
+
+            // == Helpers ==
+            function showStep(stepId) {
+                // Masquer tous les écrans
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.add('hidden');
+                });
+                
+                // Afficher l'écran demandé
+                document.getElementById(stepId).classList.remove('hidden');
+                document.getElementById(stepId).classList.add('slide-in');
+                
+                currentStep = stepId;
+            }
+
+            function updateStepIndicator(step) {
+                document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                    const circle = indicator.querySelector('div');
+                    const text = indicator.querySelector('span');
+                    
+                    if (index < step) {
+                        // Étape complétée
+                        circle.className = 'w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold';
+                        text.className = 'ml-2 font-semibold text-green-600';
+                    } else if (index === step) {
+                        // Étape actuelle
+                        circle.className = 'w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold';
+                        text.className = 'ml-2 font-semibold';
+                    } else {
+                        // Étape à venir
+                        circle.className = 'w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold';
+                        text.className = 'ml-2 text-gray-600';
+                    }
+                });
+            }
+
+            function updateCustomerInfo() {
+                customerInfo = {
+                    name: document.getElementById('customerName').value.trim(),
+                    email: document.getElementById('customerEmail').value.trim(),
+                    phone: document.getElementById('customerPhone').value.trim(),
+                };
+            }
+
+            function backToMenu() {
+                showStep('step-menu');
+                updateServiceModeIndicator(2);
+            } 
+
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+
+                const colors = {
+                    success: 'bg-green-500',
+                    error: 'bg-red-500',
+                    info: 'bg-blue-500',
+                    warning: 'bg-yellow-500',
+                };
+
+                toast.className = `${colors[type] || colors.info} text-white px-6 py-3 rounded-lg shadow-lg mb-2 slide-in`;
+                toast.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(toast);
+
+                // auto-remove apres 5s
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }, 5000);
+            }
+
+        </script>
+
     </body>
 </html>
