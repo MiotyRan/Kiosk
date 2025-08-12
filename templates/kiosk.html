@@ -69,7 +69,7 @@
                 <div class="flex items-center justify-center space-x-8">
                     <div id="step1" class="flex items-center step-inticator active">
                         <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold">1</div>
-                        <span class="ml-2 font-semibold">Mode de service</span>
+                        <span class="ml-2 font-semibold">Mode de Service</span>
                     </div>
                     <div class="w-16 h-1 bg-gray-300"></div>
                     <div id="step2" class="flex items-center step-inticator">
@@ -78,11 +78,224 @@
                     </div>
                     <div class="w-16 h-1 bg-gray-300"></div>
                     <div id="step3" class="flex items-center step-inticator">
-                        <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-gray-600 font-bold">1</div>
+                        <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-gray-600 font-bold">3</div>
                         <span class="ml-2 font-semibold">Paiement</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Conteneur principal -->
+        <main class="container mx-auto px-6 py-8">
+            <!-- Etape 1: selection du mode de service -->
+            <div id="step-service-mode" class="screen slide-in">
+                <div class="text-center mb-8">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Comment souhaitez-vous être servi ?</h1>
+                    <p>Choisissez votre mode de service</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-12 max-w-4xl mx-auto">
+                    <!-- sur place -->
+                    <button onclick="selectServiceMode('sur_place')"
+                            class="btn-touch bg-white rounded-xl shadow-lg hover:shadow-xl p-8 text-center border-4 border-transparent hover:border-yellow-400 transition-all">
+                        <div class="text-8xl mb-4">🍽️</div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Sur place</h2>
+                        <p class="text-lg text-gray-600">Profitez votre repas dans notre établissement</p>
+                        <div class="mt-4 text-sm text-blue-600">Choisissez votre table</div>
+                    </button>
+
+                    <!-- à emproter -->
+                    <button onclick="selectServiceMode('a_emporter')"
+                            class="btn-touch bg-white rounded-xl shadow-lg hover:shadow-xl p-8 text-center border-4 border-transparent hover:border-yellow-400 transition-all">
+                        <div class="text-8xl mb-4">🥡</div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">A emproter</h2>
+                        <p class="text-lg text-gray-600">Commandez et récuprer votre commande</p>
+                        <div class="mt-4 text-sm text-blue-600">Préparation rapide</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selection table si sur place -->
+            <div id="step-table-selection" class="screen hidden slide-in">
+                <div class="text-center mb-8">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Sélectionnez votre table</h1>
+                    <p class="text-xl text-gray-600">Choisissez le numéro de votre table</p>
+                </div>
+
+                <div class="grid grid-cols-5 gap-6 max-w-6xl mx-auto mb-8">
+                    <!-- tables générées dynamiquement -->
+                    <div id="table-grid"></div>
+                </div>
+
+                <div class="text-center">
+                    <button onclick="backToServiceMode()" class="btn-touch bg-gray-300 hover:bg-gray-400 text-gray-800 px-8 py-4 rounded-lg mr-4">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
+                    </button>
+                </div>
+            </div>
+
+            <!-- Etape 2: gestion allergène -->
+            <div id="step-allergens" class="screen hidden slide-in">
+                <div class="text-center mb-8">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Avez-vous des allergies ?</h1>
+                    <p class="text-xl text-gray-600">Nous filtrerons automatiquement les produits adaptés</p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto mb-8">
+                    <div class="grid grid-cols-3 gap-4 mb-6" id="allergen-grid">
+                        <!-- Allergènes générés dynamiquement -->
+                    </div>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="skipAllergens()" class="btn-touch bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg">
+                            <i class="fas fa-check mr-2"></i>Aucune allergie
+                        </button>
+                        <button onclick="confirmAllergens()" class="btn-touch bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-4 rounded-lg">
+                            <i class="fas fa-shield-alt mr-2"></i>Confirmer mes allergies
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Etape 2: menu et selection produit -->
+            <div id="step-menu" class="screen hidden">
+                <div class="flex gap-8">
+                    <!-- Sidebar Catégories -->
+                    <div class="w-1/4">
+                        <div class="sticky top-4">
+                            <h2 class="text-2xl font-bold mb-6 text-gray-800">Catégories</h2>
+                            <div class="space-y-3" id="categories-sidebar">
+                                <!-- Catégories générées dynamiquement -->
+                            </div>
+                            
+                            <!-- Informations client -->
+                            <div class="mt-8 p-4 bg-white rounded-lg shadow">
+                                <h3 class="font-bold mb-3">Vos informations</h3>
+                                <input type="text" id="customerName" 
+                                    class="w-full p-3 border rounded-lg mb-3" 
+                                    placeholder="Votre nom *" required>
+                                <input type="email" id="customerEmail" 
+                                    class="w-full p-3 border rounded-lg mb-3" 
+                                    placeholder="Email (optionnel)">
+                                <input type="tel" id="customerPhone" 
+                                    class="w-full p-3 border rounded-lg" 
+                                    placeholder="Téléphone (optionnel)">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Main Menu Area -->
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-3xl font-bold text-gray-800" id="category-title">Tous nos produits</h2>
+                            <div class="flex space-x-2">
+                                <!-- Filtres actifs -->
+                                <div id="active-filters" class="flex space-x-2"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grille Produits -->
+                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+                            <!-- Produits générés dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Etape 3: récapitulatif et paiement -->
+            <div id="step-payment" class="screen hidden slide-in">
+                <div class="grid grid-cols-2 gap-12">
+                    <!-- Récapitulatif Commande -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-3xl font-bold mb-6 text-gray-800">Récapitulatif</h2>
+                        
+                        <!-- Infos service -->
+                        <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold">Mode de service:</span>
+                                <span id="summary-service-mode" class="font-bold"></span>
+                            </div>
+                            <div id="summary-table" class="hidden">
+                                <span class="font-semibold">Table:</span>
+                                <span id="summary-table-number" class="font-bold"></span>
+                            </div>
+                            <div>
+                                <span class="font-semibold">Client:</span>
+                                <span id="summary-customer-name" class="font-bold"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Items -->
+                        <div class="space-y-4 mb-6" id="summary-items">
+                            <!-- Items générés dynamiquement -->
+                        </div>
+                        
+                        <!-- Totaux -->
+                        <div class="border-t pt-4">
+                            <div class="flex justify-between text-lg">
+                                <span>Sous-total HT:</span>
+                                <span id="summary-subtotal-ht">0.00 €</span>
+                            </div>
+                            <div class="flex justify-between text-lg">
+                                <span>TVA (20%):</span>
+                                <span id="summary-tva">0.00 €</span>
+                            </div>
+                            <div class="flex justify-between text-2xl font-bold text-green-600 mt-2 pt-2 border-t">
+                                <span>Total TTC:</span>
+                                <span id="summary-total-ttc">0.00 €</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Paiement -->
+                    <div class="space-y-6">
+                        <h2 class="text-3xl font-bold text-gray-800">Mode de Paiement</h2>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Paiement Espèces -->
+                            <button onclick="selectPaymentMethod('cash')" id="btn-payment-cash"
+                                    class="btn-touch bg-green-500 hover:bg-green-600 text-white rounded-xl p-6 text-left border-4 border-transparent">
+                                <div class="flex items-center">
+                                    <div class="text-4xl mr-4">💵</div>
+                                    <div>
+                                        <div class="text-xl font-bold">Espèces</div>
+                                        <div class="text-sm opacity-90">Paiement au comptoir</div>
+                                        <div class="text-xs mt-1 bg-green-700 inline-block px-2 py-1 rounded">Ticket immédiat</div>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <!-- Paiement Carte -->
+                            <button onclick="selectPaymentMethod('card')" id="btn-payment-card"
+                                    class="btn-touch bg-blue-500 hover:bg-blue-600 text-white rounded-xl p-6 text-left border-4 border-transparent">
+                                <div class="flex items-center">
+                                    <div class="text-4xl mr-4">💳</div>
+                                    <div>
+                                        <div class="text-xl font-bold">Carte Bancaire</div>
+                                        <div class="text-sm opacity-90">VIVA Wallet sécurisé</div>
+                                        <div class="text-xs mt-1 bg-blue-700 inline-block px-2 py-1 rounded">Paiement instantané</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="space-y-4 pt-6">
+                            <button onclick="processOrder()" id="btn-process-order"
+                                    class="btn-touch w-full mcdo-yellow hover:bg-yellow-400 text-black rounded-xl py-6 text-xl font-bold disabled:opacity-50"
+                                    disabled>
+                                <i class="fas fa-credit-card mr-3"></i>
+                                <span id="btn-process-text">Sélectionnez un mode de paiement</span>
+                            </button>
+                            
+                            <button onclick="backToMenu()" 
+                                    class="btn-touch w-full bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl py-4">
+                                <i class="fas fa-arrow-left mr-2"></i>Retour au menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
     </body>
 </html>
