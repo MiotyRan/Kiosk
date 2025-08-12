@@ -295,7 +295,77 @@
                     </div>
                 </div>
             </div>
-            
+
         </main>
+
+        <!-- Pannier flottant -->
+        <div class="cart-floating">
+            <div class="bg-white rounded-xl shadow-2xl p-4 w-80" id="floating-cart">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg">
+                        <i class="fas fa-shopping-cart text-yellow-500 mr-2"></i>
+                        Panier (<span id="cart-count">0</span>)
+                    </h3>
+                    <button onclick="toggleCart()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="cart-items" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                    <!-- Items du panier -->
+                </div>
+                
+                <div class="border-t pt-4">
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Total:</span>
+                        <span id="cart-total" class="text-green-600">0.00 €</span>
+                    </div>
+                    
+                    <button onclick="proceedToPayment()" id="btn-proceed-payment"
+                            class="w-full mt-4 btn-touch bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg py-3 font-bold disabled:opacity-50"
+                            disabled>
+                        Continuer
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modales -->
+        <!-- Personnalisation du produit -->
+         <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl p-8 max-w-4xl w-full">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold" id="modal-product-name">Personnalisez votre produit</h2>
+                    <button onclick="closeProductModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="modal-product-content">
+                    <!-- contenu généré dynamiquement -->
+                </div>
+            </div>
+         </div>
+
+        <!-- Traitement de la commande -->
+         <div id="processing-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+                <div class="mb-6">
+                    <div class="animate-spin w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-2xl font-bold mb-2" id="processing-title">Traitement en cours...</h3>
+                    <p class="text-gray-600" id="processing-subtitle">Veuillez patienter</p>
+                </div>
+
+                <div id="processing-steps" class="text-left space-y-2">
+                    <!-- etapes generees dynamiquement -->
+                </div>
+            </div>
+         </div>
+
+        <!-- Toast notification -->
+         <div id="toast-container" class="fixed top-4 right-4 z-50">
+            <!-- toasts generes dynamiquement -->
+         </div>
+
     </body>
 </html>
