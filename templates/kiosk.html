@@ -1,1203 +1,1071 @@
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Brasserie Claouey - Commande</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-        <script src="../static/js/config.js"></script>
-        <style>
-            /* style McDonald's custom */
-            .mcdo-red { background-color: #da020e; }
-            .mcdo-yellow { background-color: #ffc72c; }
-            .mcdo-green { background-color: #27ae60; }
-            .product-card:hover { transform: scale(1.02); }
-            .product-card { transition: all 0.3s ease; }
-
-            /* Animation */
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brasserie Claouey - Kiosque de Commande</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Configuration Tailwind personnalisée */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .product-card {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .cart-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        .modal {
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        }
+        
+        .allergen-badge {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+        }
+        
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
-            .slide-in { animation: slideIn 0.3s ease-out; }
-
-            /* Interface tactile optimisé pour 22" */
-            body { font-size: 18px; }
-            .btn-touch {
-                min-height: 80px;
-                font-size: 20px;
-                font-weight: bold;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
-
-            /* style panier flottant */
-            .cart-floating {
-                position: fixed;
-                right: 20px;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 1000;
-            }
-        </style>
-    </head>
-
-    <body class="bg-gray-50">
-        <!-- header McDonal's -->
-        <header class="mcdo-red text-white shadow-lg">
-            <div class="container mx-auto px-6 py-4">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <div class="text-3xl font-bold">Brasserie Claouey</div>
-                        <div class="text-sm opacity-90">Commande rapide</div>
+        }
+        
+        .slide-in-up {
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        /* Touch feedback */
+        .touch-feedback:active {
+            transform: scale(0.98);
+        }
+        
+        /* Scrollbar personnalisée */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Brasserie Claouey</h1>
+                        <p class="text-sm opacity-90">Commande en libre-service</p>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <!-- statut connexion -->
-                        <div id="connection-status" class="bg-green-500 px-3 py-1 rounded-full text-sm">En ligne</div>
-                        <!-- Mode de service actuel -->
-                        <div id="service-mode-indicator" class="bg-yellow-500 text-black px-4 py-2 rounded-lg hidden">
-                            <i class="fas-fa-info-circle mr-2"></i>
-                            <span id="service-mode-text"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Bar de progression -->
-        <div class="bg-white border-b">
-            <div class="container mx-auto px-6 py-4">
-                <div class="flex items-center justify-center space-x-8">
-                    <div id="step1" class="flex items-center step-inticator active">
-                        <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold">1</div>
-                        <span class="ml-2 font-semibold">Mode de Service</span>
-                    </div>
-                    <div class="w-16 h-1 bg-gray-300"></div>
-                    <div id="step2" class="flex items-center step-inticator">
-                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold">2</div>
-                        <span class="ml-2 font-semibold">Selection</span>
-                    </div>
-                    <div class="w-16 h-1 bg-gray-300"></div>
-                    <div id="step3" class="flex items-center step-inticator">
-                        <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-gray-600 font-bold">3</div>
-                        <span class="ml-2 font-semibold">Paiement</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Conteneur principal -->
-        <main class="container mx-auto px-6 py-8">
-            <!-- Etape 1: selection du mode de service -->
-            <div id="step-service-mode" class="screen slide-in">
-                <div class="text-center mb-8">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Comment souhaitez-vous être servi ?</h1>
-                    <p>Choisissez votre mode de service</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-12 max-w-4xl mx-auto">
-                    <!-- sur place -->
-                    <button onclick="selectServiceMode('sur_place')"
-                            class="btn-touch bg-white rounded-xl shadow-lg hover:shadow-xl p-8 text-center border-4 border-transparent hover:border-yellow-400 transition-all">
-                        <div class="text-8xl mb-4">🍽️</div>
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Sur place</h2>
-                        <p class="text-lg text-gray-600">Profitez votre repas dans notre établissement</p>
-                        <div class="mt-4 text-sm text-blue-600">Choisissez votre table</div>
-                    </button>
-
-                    <!-- à emproter -->
-                    <button onclick="selectServiceMode('a_emporter')"
-                            class="btn-touch bg-white rounded-xl shadow-lg hover:shadow-xl p-8 text-center border-4 border-transparent hover:border-yellow-400 transition-all">
-                        <div class="text-8xl mb-4">🥡</div>
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">A emproter</h2>
-                        <p class="text-lg text-gray-600">Commandez et récuprer votre commande</p>
-                        <div class="mt-4 text-sm text-blue-600">Préparation rapide</div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Selection table si sur place -->
-            <div id="step-table-selection" class="screen hidden slide-in">
-                <div class="text-center mb-8">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Sélectionnez votre table</h1>
-                    <p class="text-xl text-gray-600">Choisissez le numéro de votre table</p>
-                </div>
-
-                <div class="grid grid-cols-5 gap-6 max-w-6xl mx-auto mb-8">
-                    <!-- tables générées dynamiquement -->
-                    <div id="table-grid"></div>
-                </div>
-
-                <div class="text-center">
-                    <button onclick="backToServiceMode()" class="btn-touch bg-gray-300 hover:bg-gray-400 text-gray-800 px-8 py-4 rounded-lg mr-4">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour
-                    </button>
-                </div>
-            </div>
-
-            <!-- Etape 2: gestion allergène -->
-            <div id="step-allergens" class="screen hidden slide-in">
-                <div class="text-center mb-8">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Avez-vous des allergies ?</h1>
-                    <p class="text-xl text-gray-600">Nous filtrerons automatiquement les produits adaptés</p>
                 </div>
                 
-                <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto mb-8">
-                    <div class="grid grid-cols-3 gap-4 mb-6" id="allergen-grid">
-                        <!-- Allergènes générés dynamiquement -->
+                <div class="flex items-center space-x-4">
+                    <!-- Indicateur de connexion -->
+                    <div id="connection-indicator" class="bg-green-500 text-white px-4 py-2 rounded-full text-sm">
+                        <i class="fas fa-wifi mr-2"></i>En ligne
                     </div>
                     
-                    <div class="flex justify-center space-x-4">
-                        <button onclick="skipAllergens()" class="btn-touch bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg">
-                            <i class="fas fa-check mr-2"></i>Aucune allergie
-                        </button>
-                        <button onclick="confirmAllergens()" class="btn-touch bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-4 rounded-lg">
-                            <i class="fas fa-shield-alt mr-2"></i>Confirmer mes allergies
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Etape 2: menu et selection produit -->
-            <div id="step-menu" class="screen hidden">
-                <div class="flex gap-8">
-                    <!-- Sidebar Catégories -->
-                    <div class="w-1/4">
-                        <div class="sticky top-4">
-                            <h2 class="text-2xl font-bold mb-6 text-gray-800">Catégories</h2>
-                            <div class="space-y-3" id="categories-sidebar">
-                                <!-- Catégories générées dynamiquement -->
-                            </div>
-                            
-                            <!-- Informations client -->
-                            <div class="mt-8 p-4 bg-white rounded-lg shadow">
-                                <h3 class="font-bold mb-3">Vos informations</h3>
-                                <input type="text" id="customerName" 
-                                    class="w-full p-3 border rounded-lg mb-3" 
-                                    placeholder="Votre nom *" required>
-                                <input type="email" id="customerEmail" 
-                                    class="w-full p-3 border rounded-lg mb-3" 
-                                    placeholder="Email (optionnel)">
-                                <input type="tel" id="customerPhone" 
-                                    class="w-full p-3 border rounded-lg" 
-                                    placeholder="Téléphone (optionnel)">
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Main Menu Area -->
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-3xl font-bold text-gray-800" id="category-title">Tous nos produits</h2>
-                            <div class="flex space-x-2">
-                                <!-- Filtres actifs -->
-                                <div id="active-filters" class="flex space-x-2"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Grille Produits -->
-                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
-                            <!-- Produits générés dynamiquement -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Etape 3: récapitulatif et paiement -->
-            <div id="step-payment" class="screen hidden slide-in">
-                <div class="grid grid-cols-2 gap-12">
-                    <!-- Récapitulatif Commande -->
-                    <div class="bg-white rounded-xl shadow-lg p-8">
-                        <h2 class="text-3xl font-bold mb-6 text-gray-800">Récapitulatif</h2>
-                        
-                        <!-- Infos service -->
-                        <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold">Mode de service:</span>
-                                <span id="summary-service-mode" class="font-bold"></span>
-                            </div>
-                            <div id="summary-table" class="hidden">
-                                <span class="font-semibold">Table:</span>
-                                <span id="summary-table-number" class="font-bold"></span>
-                            </div>
-                            <div>
-                                <span class="font-semibold">Client:</span>
-                                <span id="summary-customer-name" class="font-bold"></span>
-                            </div>
-                        </div>
-                        
-                        <!-- Items -->
-                        <div class="space-y-4 mb-6" id="summary-items">
-                            <!-- Items générés dynamiquement -->
-                        </div>
-                        
-                        <!-- Totaux -->
-                        <div class="border-t pt-4">
-                            <div class="flex justify-between text-lg">
-                                <span>Sous-total HT:</span>
-                                <span id="summary-subtotal-ht">0.00 €</span>
-                            </div>
-                            <div class="flex justify-between text-lg">
-                                <span>TVA (20%):</span>
-                                <span id="summary-tva">0.00 €</span>
-                            </div>
-                            <div class="flex justify-between text-2xl font-bold text-green-600 mt-2 pt-2 border-t">
-                                <span>Total TTC:</span>
-                                <span id="summary-total-ttc">0.00 €</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Paiement -->
-                    <div class="space-y-6">
-                        <h2 class="text-3xl font-bold text-gray-800">Mode de Paiement</h2>
-                        
-                        <div class="grid grid-cols-1 gap-4">
-                            <!-- Paiement Espèces -->
-                            <button onclick="selectPaymentMethod('cash')" id="btn-payment-cash"
-                                    class="btn-touch bg-green-500 hover:bg-green-600 text-white rounded-xl p-6 text-left border-4 border-transparent">
-                                <div class="flex items-center">
-                                    <div class="text-4xl mr-4">💵</div>
-                                    <div>
-                                        <div class="text-xl font-bold">Espèces</div>
-                                        <div class="text-sm opacity-90">Paiement au comptoir</div>
-                                        <div class="text-xs mt-1 bg-green-700 inline-block px-2 py-1 rounded">Ticket immédiat</div>
-                                    </div>
-                                </div>
-                            </button>
-                            
-                            <!-- Paiement Carte -->
-                            <button onclick="selectPaymentMethod('card')" id="btn-payment-card"
-                                    class="btn-touch bg-blue-500 hover:bg-blue-600 text-white rounded-xl p-6 text-left border-4 border-transparent">
-                                <div class="flex items-center">
-                                    <div class="text-4xl mr-4">💳</div>
-                                    <div>
-                                        <div class="text-xl font-bold">Carte Bancaire</div>
-                                        <div class="text-sm opacity-90">VIVA Wallet sécurisé</div>
-                                        <div class="text-xs mt-1 bg-blue-700 inline-block px-2 py-1 rounded">Paiement instantané</div>
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
-                        
-                        <!-- Actions -->
-                        <div class="space-y-4 pt-6">
-                            <button onclick="processOrder()" id="btn-process-order"
-                                    class="btn-touch w-full mcdo-yellow hover:bg-yellow-400 text-black rounded-xl py-6 text-xl font-bold disabled:opacity-50"
-                                    disabled>
-                                <i class="fas fa-credit-card mr-3"></i>
-                                <span id="btn-process-text">Sélectionnez un mode de paiement</span>
-                            </button>
-                            
-                            <button onclick="backToMenu()" 
-                                    class="btn-touch w-full bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl py-4">
-                                <i class="fas fa-arrow-left mr-2"></i>Retour au menu
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Pannier flottant -->
-        <div class="cart-floating">
-            <div class="bg-white rounded-xl shadow-2xl p-4 w-80" id="floating-cart">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-bold text-lg">
-                        <i class="fas fa-shopping-cart text-yellow-500 mr-2"></i>
-                        Panier (<span id="cart-count">0</span>)
-                    </h3>
-                    <button onclick="toggleCart()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div id="cart-items" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
-                    <!-- Items du panier -->
-                </div>
-                
-                <div class="border-t pt-4">
-                    <div class="flex justify-between font-bold text-lg">
-                        <span>Total:</span>
-                        <span id="cart-total" class="text-green-600">0.00 €</span>
-                    </div>
-                    
-                    <button onclick="proceedToPayment()" id="btn-proceed-payment"
-                            class="w-full mt-4 btn-touch bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg py-3 font-bold disabled:opacity-50"
-                            disabled>
-                        Continuer
-                        <i class="fas fa-arrow-right ml-2"></i>
+                    <!-- Panier -->
+                    <button id="cart-button" 
+                            class="relative bg-white text-blue-600 px-6 py-3 rounded-full font-semibold shadow-lg touch-feedback hover:bg-gray-50 transition-colors"
+                            onclick="openCartModal()">
+                        <i class="fas fa-shopping-cart mr-2"></i>
+                        Panier
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center cart-badge hidden">0</span>
                     </button>
                 </div>
             </div>
         </div>
+    </header>
 
-        <!-- Modales -->
-        <!-- Personnalisation du produit -->
-         <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-            <div class="bg-white rounded-xl p-8 max-w-4xl w-full">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold" id="modal-product-name">Personnalisez votre produit</h2>
-                    <button onclick="closeProductModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div id="modal-product-content">
-                    <!-- contenu généré dynamiquement -->
-                </div>
+    <!-- Content Principal -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Sélection du mode de service -->
+        <div id="service-mode-screen" class="slide-in-up">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Bienvenue !</h2>
+                <p class="text-xl text-gray-600">Comment souhaitez-vous être servi ?</p>
             </div>
-         </div>
-
-        <!-- Traitement de la commande -->
-         <div id="processing-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center">
-            <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
-                <div class="mb-6">
-                    <div class="animate-spin w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <h3 class="text-2xl font-bold mb-2" id="processing-title">Traitement en cours...</h3>
-                    <p class="text-gray-600" id="processing-subtitle">Veuillez patienter</p>
-                </div>
-
-                <div id="processing-steps" class="text-left space-y-2">
-                    <!-- etapes generees dynamiquement -->
-                </div>
-            </div>
-         </div>
-
-        <!-- Toast notification -->
-         <div id="toast-container" class="fixed top-4 right-4 z-50">
-            <!-- toasts generes dynamiquement -->
-         </div>
-
-        <script>
-            // Configuration et etat global
-            let currentStep = 'service-mode';
-            let serviceMode = null;
-            let tableNumber = null;
-            let customerInfo = {};
-            let selectedAllergens = [];
-            let cart = [];
-            let categories = [];
-            let products = [];
-            let selectedPayementMethod = null;
-            let currentOrder = null;
-
-            // configuration des allergènes (14 obligatoires UE)
-            const ALLARGENS = {
-                1: {code: 'GLU', name: 'Gluten', icon:'🌾'},
-                2: {code: 'CRU', name: 'Crustcés', icon: '🦐'},
-                3: {code: 'EGG', name: 'Oeufs', icon: '🥚'},
-                4: {code: 'FSH', name: 'Poisson', icon: '🐟'},
-                5: {code: 'PNT', name: 'Arachides', icon: '🥜'},
-                6: {code: 'SOY', name: 'Soja', icon: '🌱'},
-                7: {code: 'MLK', name: 'Lait', icon: '🥛'},
-                8: {code: 'NUT', name: 'Fruits à coq', icon: '🌰'},
-                9: {code: 'CEL', name: 'Céléri', icon: '🥬'},
-                10: {code: 'MUS', name: 'Moutarde', icon: '🟡'},
-                11: {code: 'SES', name: 'Graines de sésame', icon: '⚪'},
-                12: {code: 'SUL', name: 'Sulfites', icon: '🧪'},
-                13: {code: 'LUP', name: 'Lupin', icon: '🌿'},
-                14: {code: 'MOL', name: 'Mollusques', icon: '🦪'},
-            }
-
-            // limites business
-            const LIMIT = {
-                max_items_per_order: 50,
-                max_quantity_per_item: 20,
-                tva: 0.20
-            }
-
-            // API URL (depuis config.js ou fallback)
-            const API_URL = window.CONFIG?.API_URL || 'http://localhost:8000';
-
-            // initialisation
-            document.addEventListener('DOMContentLoaded', () => {
-                showStep('step-service-mode');
-                loadCategoriesAndProducts();
-                generateTableGrid();
-                generateAllergenGrid();
-                updateCarteUI();
-
-                // event listener
-                setupEventListeners();
-            });
-
-            // configuration des event listeners
-            function setupEventListeners() {
-                // validation du nom client
-                document.getElementById('customerName').addEventListener('input', updateCustomerInfo);
-                document.getElementById('customerEmail').addEventListener('input', updateCustomerInfo);
-                document.getElementById('customerPhone').addEventListener('input', updateCustomerInfo);
-            }
-
-            // Etape 1: Mode de service
-            function selectServiceMode(mode) {
-                serviceMode = mode;
-                updateStepIndicator(1);
-
-                if (mode === 'sur_place') {
-                    showStep('step-table-selection');
-                } else {
-                    // à emporter, passser aux allergenes
-                    showStep('step-allergens');
-                }
-
-                updateServiceModeIndicator();
-            }
-
-            function updateServiceModeIndicator() {
-                const indicator = document.getElementById('service-mode-indicator');
-                const text = document.getElementById('service-mode-text')
-
-                if (serviceMode) {
-                    indicator.classList.remove('hidden');
-                    if (serviceMode === 'sur_place') {
-                        text.textContent = tableNumber ? `Sur place - Table ${tableNumber}` : 'Sur place';
-                    } else {
-                        text.textContent = 'A emporter';
-                    }
-                }
-            }
-
-            // generation grille des tables
-            function generateTableGrid() {
-                const grid = document.getElementById('table-grid');
-                grid.innerHTML = '';
-
-                // 20 tables 
-                for (let i = 1; i <= 20; i++) {
-                    const tableBtn = document.createElement('button');
-                    tableBtn.className = 'btn-touch bg-white hover:bg-yellow-100 border-2 hover:border-yellow-400 rounded-xl p-6 text-center transition-all';
-                    tableBtn.onclick = () => selectTable(i);
-                    tableBtn.innerHTML = `
-                        <div class="text-3xl mb-2">🪑</div>
-                        <div class="font-bold">Table ${i}</div>
-                        <div class="text-sm text-gray-500">Disponible</div>
-                    `;
-                    grid.appendChild(tableBtn);
-                }
-            }
-
-            function selectTable(number) {
-                tableNumber = number;
-                updateServiceModeIndicator();
-                showStep('step-allergens');
-            } 
-
-            function backToServiceMode() {
-                serviceMode = null;
-                tableNumber = null;
-                showStep('step-service-mode');
-                updateServiceModeIndicator(0);
-            }
-
-            // Etape 2: Allergènes
-            function generateAllergenGrid() {
-                const grid = document.getElementById('allergen-grid');
-                grid.innerHTML = '';
-
-                Object.entries(ALLARGENS).forEach(([id, allergen]) => {
-                    const allergenDiv = document.createElement('label');
-                    allergenDiv.className = 'flex items-center p-4 border-2 rounded-lg hover:bg-red-50 cursor-pointer transition-all';
-                    allergenDiv.innerHTML = `
-                        <input type="checkbox" class="allergen-checkbox mr-3 w-5 h-5" 
-                            value="${id}" onchange="toggleAllergen(${id})">
-                        <span class="text-2xl mr-3">${allergen.icon}</span>
-                        <span class="font-medium">${allergen.name}</span>
-                    `;
-                    grid.appendChild(allergenDiv);
-                });
-            }
             
-            function toggleAllergen(id) {
-                const checkbox = document.querySelector(`input[value="${id}"]`);
-                if (checkbox.checked) {
-                    if (!selectedAllergens.includes(id)) {
-                        selectedAllergens.push(id);
+            <div class="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <button onclick="setServiceMode('sur_place')" 
+                        class="group bg-white p-12 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 touch-feedback">
+                    <div class="text-center">
+                        <div class="bg-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-200 transition-colors">
+                            <i class="fas fa-utensils text-6xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">Sur Place</h3>
+                        <p class="text-gray-600 text-lg">Consommez dans notre établissement</p>
+                    </div>
+                </button>
+                
+                <button onclick="setServiceMode('a_emporter')" 
+                        class="group bg-white p-12 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 touch-feedback">
+                    <div class="text-center">
+                        <div class="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-green-200 transition-colors">
+                            <i class="fas fa-shopping-bag text-6xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">À Emporter</h3>
+                        <p class="text-gray-600 text-lg">Récupérez votre commande</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sélection de table -->
+        <div id="table-selection-screen" class="hidden slide-in-up">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Choisissez votre table</h2>
+                <p class="text-lg text-gray-600">Sélectionnez le numéro de votre table</p>
+            </div>
+            
+            <div id="table-grid" class="grid grid-cols-5 gap-4 max-w-4xl mx-auto">
+                <!-- Tables générées dynamiquement -->
+            </div>
+            
+            <div class="text-center mt-8">
+                <button onclick="goBackToServiceMode()" 
+                        class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+            </div>
+        </div>
+
+        <!-- Sélection des allergènes -->
+        <div id="allergen-selection-screen" class="hidden slide-in-up">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Allergies et intolérances</h2>
+                <p class="text-lg text-gray-600 mb-6">Sélectionnez vos allergies pour filtrer automatiquement le menu</p>
+            </div>
+            
+            <div id="allergen-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-8">
+                <!-- Allergènes générés dynamiquement -->
+            </div>
+            
+            <div class="text-center space-x-4">
+                <button onclick="skipAllergenSelection()" 
+                        class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                    Aucune allergie
+                </button>
+                <button onclick="confirmAllergenSelection()" 
+                        class="btn-primary text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 touch-feedback">
+                    Confirmer et filtrer le menu
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu principal -->
+        <div id="main-menu-screen" class="hidden">
+            <!-- Barre de catégories -->
+            <div class="mb-8">
+                <div id="categories-nav" class="flex space-x-4 overflow-x-auto pb-4">
+                    <!-- Catégories générées dynamiquement -->
+                </div>
+            </div>
+
+            <!-- Grille des produits -->
+            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Produits générés dynamiquement -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Panier -->
+    <div id="cart-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-screen overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-bold text-gray-800">Votre Panier</h3>
+                    <button onclick="closeCartModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="max-h-96 overflow-y-auto p-6">
+                <div id="cart-items" class="space-y-4">
+                    <!-- Items du panier -->
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-shopping-cart text-6xl mb-4 opacity-50"></i>
+                        <p class="text-xl">Votre panier est vide</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="cart-footer" class="p-6 border-t border-gray-200 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <span class="text-xl font-semibold text-gray-800">Total TTC:</span>
+                    <span id="cart-total" class="text-3xl font-bold text-green-600">0.00€</span>
+                </div>
+                
+                <button onclick="proceedToCheckout()" 
+                        class="w-full btn-primary text-white py-4 rounded-xl text-xl font-semibold hover:opacity-90 touch-feedback">
+                    <i class="fas fa-credit-card mr-2"></i>
+                    Procéder au paiement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Personnalisation Produit -->
+    <div id="product-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl max-w-3xl w-full mx-4 max-h-screen overflow-y-auto">
+            <!-- Contenu généré dynamiquement -->
+        </div>
+    </div>
+
+    <!-- Modal Paiement -->
+    <div id="payment-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl max-w-lg w-full mx-4">
+            <div class="p-8 text-center">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Choisir le mode de paiement</h3>
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <button onclick="processCashPayment()" 
+                            class="bg-green-500 text-white p-8 rounded-xl text-xl font-semibold hover:bg-green-600 touch-feedback">
+                        <i class="fas fa-money-bill-wave text-6xl mb-4"></i>
+                        <br>Espèces
+                    </button>
+                    <button onclick="processCardPayment()" 
+                            class="bg-blue-500 text-white p-8 rounded-xl text-xl font-semibold hover:bg-blue-600 touch-feedback">
+                        <i class="fas fa-credit-card text-6xl mb-4"></i>
+                        <br>Carte Bancaire
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Écran de confirmation -->
+    <div id="confirmation-screen" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center p-8">
+            <div class="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                <i class="fas fa-check text-6xl text-green-600"></i>
+            </div>
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Commande confirmée !</h2>
+            <p class="text-xl text-gray-600 mb-2">Numéro de commande :</p>
+            <p id="order-number" class="text-2xl font-bold text-blue-600 mb-8">#BC-000001</p>
+            
+            <div class="space-y-4">
+                <p class="text-lg text-gray-700">Votre commande est en cours de préparation</p>
+                <p class="text-gray-600">Temps d'attente estimé : <span id="estimated-time" class="font-semibold">15-20 minutes</span></p>
+            </div>
+            
+            <button onclick="startNewOrder()" 
+                    class="mt-8 btn-primary text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 touch-feedback">
+                Nouvelle commande
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Notifications générées dynamiquement -->
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION ET CONSTANTES
+        // ========================================
+        
+        // Configuration des allergènes (14 obligatoires UE)
+        const ALLERGENS = {
+            1: { code: 'GLU', name: 'Gluten', icon: '🌾' },
+            2: { code: 'CRU', name: 'Crustacés', icon: '🦐' },
+            3: { code: 'EGG', name: 'Œufs', icon: '🥚' },
+            4: { code: 'FSH', name: 'Poisson', icon: '🐟' },
+            5: { code: 'PNT', name: 'Arachides', icon: '🥜' },
+            6: { code: 'SOY', name: 'Soja', icon: '🌱' },
+            7: { code: 'MLK', name: 'Lait', icon: '🥛' },
+            8: { code: 'NUT', name: 'Fruits à coque', icon: '🌰' },
+            9: { code: 'CEL', name: 'Céleri', icon: '🥬' },
+            10: { code: 'MUS', name: 'Moutarde', icon: '🟡' },
+            11: { code: 'SES', name: 'Graines de sésame', icon: '⚪' },
+            12: { code: 'SUL', name: 'Sulfites', icon: '🧪' },
+            13: { code: 'LUP', name: 'Lupin', icon: '🌿' },
+            14: { code: 'MOL', name: 'Mollusques', icon: '🦪' }
+        };
+
+        // Modes de service
+        const SERVICE_MODES = {
+            DINE_IN: 'sur_place',
+            TAKEAWAY: 'a_emporter'
+        };
+
+        // Configuration des tables
+        const TABLE_NUMBERS = Array.from({length: 20}, (_, i) => i + 1);
+
+        // État de l'application
+        const appState = {
+            currentScreen: 'service-mode',
+            serviceMode: null,
+            tableNumber: null,
+            customerAllergens: [],
+            cart: [],
+            currentCategory: null,
+            products: [],
+            categories: []
+        };
+
+        // ========================================
+        // INITIALISATION
+        // ========================================
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Initialisation du kiosque...');
+            
+            try {
+                // Générer les éléments UI
+                generateAllergenGrid();
+                generateTableGrid();
+                
+                // Charger le catalogue
+                await loadCatalog();
+                
+                // Démarrer l'écran de veille si configuré
+                if (isFeatureEnabled && isFeatureEnabled('screensaver')) {
+                    initScreensaver();
+                }
+                
+                console.log('✅ Kiosque initialisé avec succès');
+            } catch (error) {
+                console.error('❌ Erreur d\'initialisation:', error);
+                showToast('Erreur d\'initialisation', 'error');
+            }
+        });
+
+        // ========================================
+        // GESTION DES ÉCRANS
+        // ========================================
+        
+        function showScreen(screenId) {
+            // Masquer tous les écrans
+            document.querySelectorAll('[id$="-screen"]').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            
+            // Afficher l'écran demandé
+            const screen = document.getElementById(screenId);
+            if (screen) {
+                screen.classList.remove('hidden');
+                screen.classList.add('slide-in-up');
+                appState.currentScreen = screenId.replace('-screen', '');
+            }
+        }
+
+        // ========================================
+        // SÉLECTION DU MODE DE SERVICE
+        // ========================================
+        
+        function setServiceMode(mode) {
+            appState.serviceMode = mode;
+            
+            if (mode === SERVICE_MODES.DINE_IN) {
+                showScreen('table-selection-screen');
+            } else {
+                // Mode à emporter, passer aux allergènes
+                showScreen('allergen-selection-screen');
+            }
+        }
+
+        function setTableNumber(tableNum) {
+            appState.tableNumber = tableNum;
+            showScreen('allergen-selection-screen');
+        }
+
+        function goBackToServiceMode() {
+            showScreen('service-mode-screen');
+        }
+
+        // ========================================
+        // GESTION DES ALLERGÈNES
+        // ========================================
+        
+        function generateAllergenGrid() {
+            const grid = document.getElementById('allergen-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = Object.entries(ALLERGENS).map(([id, allergen]) => `
+                <label class="flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-red-300 cursor-pointer transition-colors touch-feedback">
+                    <input type="checkbox" 
+                           class="allergen-checkbox mr-3 w-5 h-5" 
+                           value="${id}"
+                           onchange="toggleAllergen(${id})">
+                    <span class="text-3xl mr-3">${allergen.icon}</span>
+                    <span class="font-semibold">${allergen.name}</span>
+                </label>
+            `).join('');
+        }
+
+        function generateTableGrid() {
+            const grid = document.getElementById('table-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = TABLE_NUMBERS.map(num => `
+                <button onclick="setTableNumber(${num})" 
+                        class="bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 p-8 rounded-xl text-xl font-semibold transition-colors touch-feedback">
+                    Table ${num}
+                </button>
+            `).join('');
+        }
+
+        function toggleAllergen(allergenId) {
+            const index = appState.customerAllergens.indexOf(allergenId);
+            if (index === -1) {
+                appState.customerAllergens.push(allergenId);
+            } else {
+                appState.customerAllergens.splice(index, 1);
+            }
+        }
+
+        function skipAllergenSelection() {
+            appState.customerAllergens = [];
+            proceedToMenu();
+        }
+
+        function confirmAllergenSelection() {
+            if (appState.customerAllergens.length > 0) {
+                showToast(`Filtre appliqué pour ${appState.customerAllergens.length} allergène(s)`, 'success');
+            }
+            proceedToMenu();
+        }
+
+        function proceedToMenu() {
+            showScreen('main-menu-screen');
+            renderCategories();
+            renderProducts();
+        }
+
+        // ========================================
+        // GESTION DU CATALOGUE
+        // ========================================
+        
+        async function loadCatalog() {
+            try {
+                // Simuler le chargement du catalogue
+                // En production, remplacer par un appel API réel
+                appState.categories = [
+                    { id: 1, name: 'Burgers', icon: '🍔', active: true },
+                    { id: 2, name: 'Salades', icon: '🥗', active: true },
+                    { id: 3, name: 'Boissons', icon: '🥤', active: true },
+                    { id: 4, name: 'Desserts', icon: '🍰', active: true },
+                    { id: 5, name: 'Menus', icon: '🍽️', active: true }
+                ];
+
+                appState.products = [
+                    {
+                        id: 1,
+                        name: 'Burger Classic',
+                        description: 'Pain de bœuf, salade, tomates, cornichons',
+                        price: 12.50,
+                        category_id: 1,
+                        image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&h=200&fit=crop',
+                        allergens: [1, 3, 7], // Gluten, Œufs, Lait
+                        options: {
+                            sizes: [
+                                { id: 'normal', name: 'Normal', price: 0 },
+                                { id: 'maxi', name: 'Maxi', price: 2.50 }
+                            ],
+                            extras: [
+                                { id: 'bacon', name: 'Bacon supplémentaire', price: 1.50 },
+                                { id: 'cheese', name: 'Fromage supplémentaire', price: 1.00 }
+                            ]
+                        }
+                    },
+                    {
+                        id: 2,
+                        name: 'Salade César',
+                        description: 'Salade, poulet grillé, parmesan, croûtons',
+                        price: 9.90,
+                        category_id: 2,
+                        image_url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300&h=200&fit=crop',
+                        allergens: [1, 3, 4, 7], // Gluten, Œufs, Poisson, Lait
+                        options: {
+                            extras: [
+                                { id: 'chicken_extra', name: 'Double portion poulet', price: 3.00 }
+                            ]
+                        }
+                    },
+                    {
+                        id: 3,
+                        name: 'Coca-Cola',
+                        description: 'Boisson gazeuse',
+                        price: 2.50,
+                        category_id: 3,
+                        image_url: 'https://images.unsplash.com/photo-1581636625402-29d2d0b5c9c0?w=300&h=200&fit=crop',
+                        allergens: [],
+                        options: {
+                            sizes: [
+                                { id: 'small', name: 'Petit (33cl)', price: 0 },
+                                { id: 'medium', name: 'Moyen (50cl)', price: 0.50 },
+                                { id: 'large', name: 'Grand (75cl)', price: 1.00 }
+                            ]
+                        }
                     }
-                } else {
-                    selectedAllergens = selectedAllergens.filter(a => a != id);
-                }
-            }
+                ];
 
-            function skipAllergens() {
-                selectedAllergens = [];
-                showStep('step-menu');
-                updateServiceModeIndicator(2);
-            }
-
-            function confirmAllergens() {
-                showToast(`${selectedAllergens.length} allergies sélectionnées`, 'info');
-                showStep('step-menu');
-                updateServiceModeIndicator(2);
-                // filtrer les produits
-                filterProductsByAllergen();
-            }
-
-            // == Chargement des données ==
-            async function loadCategoriesAndProducts() {
-                try {
-                    // charger categories
-                    const categoriesResponse = await fetch(`${API_URL}/api/catalog/categories`);
-                    if (categoriesResponse.ok) {
-                        const categoriesData = await categoriesResponse.json();
-                        categories = categoriesData.categories || categoriesData;
-                        displayCategories();
-                    }
-
-                    // charger produits 
-                    const productsResponse = await fetch(`${API_URL}/api/catalog/products`);
-                    if (productsResponse.ok) {
-                        const productsData = await productsResponse.json();
-                        products = productsData.products || productsData;
-                        displayProducts();
-                    }
-                } catch (error) {
-                    console.error('Erreur chargement données:', error);
-                    showToast('Erreur de chargement du catalogue', 'error');
-                }
-            }
-
-            // affichage des catégories
-            function displayCategories() {
-                const sidebar = document.getElementById('categories-sidebar');
-                sidebar.innerHTML = '';
-
-                // bouton "Tous"
-                allBtn.className = 'w-full text-left p-4 rounded-lg bg-yellow-500 text-black font-bold';
-                allBtn.onclick = () => filterByCategory(null);
-                allBtn.innerHTML = '<i class="fas fa-th-large mr-3"></i>Tous nos produits';
-                sidebar.appendChild(allBtn);
-
-                categories.forEach(category => {
-                    const btn = document.createElement('button');
-                    btn.className = 'w-full text-left p-4 rounded-lg bg-white hover:bg-yellow-50 border hover:border-yellow-300 transition-all';
-                    btn.onclick = () => filterByCategory(category.id);
-                    btn.innerHTML = `
-                        <div class="flex items-center">
-                            <span class="text-2xl mr-3">${category.icon || '🍴'}</span>
-                            <span class="font-semibold">${category.name}</span>
-                        </div>
-                    `;
-                    sidebar.appendChild(btn);
-                });
-            }
-
-            // affichage des produits
-            function displayProducts(filterderProducts = products) {
-                const grid = document.getElementById('products-grid');
-                grid.innerHTML = '';
+                appState.currentCategory = appState.categories[0]?.id || null;
                 
-                filteredProducts.forEach(product => {
-                    const productCard = document.createElement('div');
-                    productCard.className = 'product-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer';
-                    productCard.onclick = () => showProductModal(product);
-                    
-                    productCard.innerHTML = `
-                        <div class="relative">
-                            <img src="${product.image_url || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name)}" 
-                                alt="${product.name}" 
-                                class="w-full h-48 object-cover">
-                            ${product.is_popular ? '<div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">🔥 Populaire</div>' : ''}
-                            ${!product.is_safe ? '<div class="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs">⚠️</div>' : ''}
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-bold text-lg mb-2">${product.name}</h3>
-                            <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'Délicieux produit de notre chef'}</p>
-                            
-                            ${product.allergens ? `
-                                <div class="flex flex-wrap gap-1 mb-3">
-                                    ${product.allergens.slice(0, 3).map(a => {
-                                        const allergen = ALLERGENS[a.allergen_id];
-                                        return `<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded" title="${allergen.name}">
-                                            ${allergen.icon} ${allergen.code}
-                                        </span>`;
-                                    }).join('')}
-                                    ${product.allergens.length > 3 ? '<span class="text-xs text-gray-500">+' + (product.allergens.length - 3) + '</span>' : ''}
-                                </div>
-                            ` : ''}
-                            
-                            <div class="flex justify-between items-center">
-                                <span class="text-2xl font-bold text-green-600">${(product.base_price || 0).toFixed(2)} €</span>
-                                <button class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg font-bold">
-                                    <i class="fas fa-plus mr-1"></i>Ajouter
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    grid.appendChild(productCard);
-                }); 
+            } catch (error) {
+                console.error('Erreur chargement catalogue:', error);
+                showToast('Erreur de chargement du menu', 'error');
             }
+        }
 
-            // filtrage par categorie
-            function filterByCategory(categoryId) {
-                const filtered = categoryId ? products.filter(p => p.category_id === categoryId) : products;
-                displayProducts(filtered);
-                
-                // Mettre à jour le titre
-                const title = document.getElementById('category-title');
-                if (categoryId) {
-                    const category = categories.find(c => c.id === categoryId);
-                    title.textContent = category ? category.name : 'Catégorie';
-                } else {
-                    title.textContent = 'Tous nos produits';
-                }
-                
-                // Mettre à jour les boutons catégories
-                document.querySelectorAll('#categories-sidebar button').forEach(btn => {
-                    btn.className = btn.className.replace('bg-yellow-500 text-black', 'bg-white hover:bg-yellow-50 border hover:border-yellow-300');
-                });
-            }
+        function renderCategories() {
+            const nav = document.getElementById('categories-nav');
+            if (!nav || !appState.categories.length) return;
+            
+            nav.innerHTML = appState.categories.map(category => `
+                <button onclick="selectCategory(${category.id})" 
+                        class="category-btn flex-shrink-0 px-6 py-3 rounded-full text-lg font-semibold transition-colors touch-feedback ${
+                            appState.currentCategory === category.id 
+                                ? 'bg-blue-500 text-white' 
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                        }">
+                    <span class="mr-2">${category.icon}</span>
+                    ${category.name}
+                </button>
+            `).join('');
+        }
 
-            // fitrage par allergenes
-            function filterProductsByAllergens() {
-                if (selectedAllergens.length === 0) {
-                    displayProducts();
-                    return;
-                }
-                
-                // Simuler le filtrage (dans la vraie version, appel API)
-                const safeProducts = products.filter(product => {
-                    // Logique de filtrage basée sur les allergènes
-                    return !product.allergens || !product.allergens.some(a => 
-                        selectedAllergens.includes(a.allergen_id)
-                    );
-                });
-                
-                displayProducts(safeProducts);
-                
-                showToast(`${safeProducts.length} produits adaptés à vos allergies`, 'success');
-            }
+        function selectCategory(categoryId) {
+            appState.currentCategory = categoryId;
+            renderCategories();
+            renderProducts();
+        }
 
-            // == Modal produit ==
-            function showProductModal(product) {
-                const modal = document.getElementById('product-modal');
-                const name = document.getElementById('modal-product-name');
-                const content = document.getElementById('modal-product-content');
-                
-                name.textContent = product.name;
-                
-                content.innerHTML = `
-                    <div class="grid grid-cols-2 gap-8">
-                        <div>
-                            <img src="${product.image_url || 'https://via.placeholder.com/400x300'}" 
-                                alt="${product.name}" 
-                                class="w-full rounded-lg">
-                        </div>
-                        <div>
-                            <p class="text-lg mb-4">${product.description || 'Délicieux produit de notre chef'}</p>
-                            <div class="text-3xl font-bold text-green-600 mb-6">${(product.base_price || 0).toFixed(2)} €</div>
-                            
-                            <!-- Quantité -->
-                            <div class="mb-6">
-                                <label class="block font-bold mb-2">Quantité</label>
-                                <div class="flex items-center space-x-4">
-                                    <button onclick="changeQuantity(-1)" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded">-</button>
-                                    <span id="modal-quantity" class="text-xl font-bold">1</span>
-                                    <button onclick="changeQuantity(1)" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded">+</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Instructions spéciales -->
-                            <div class="mb-6">
-                                <label class="block font-bold mb-2">Instructions spéciales</label>
-                                <textarea id="modal-instructions" class="w-full p-3 border rounded-lg" rows="3" 
-                                        placeholder="Exemple: Sans oignons, bien cuit, sauce à part..."></textarea>
-                            </div>
-                            
-                            <!-- Actions -->
-                            <div class="space-y-4">
-                                <button onclick="addProductToCart('${product.id}')" 
-                                        class="w-full btn-touch bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg py-4 text-xl font-bold">
-                                    <i class="fas fa-cart-plus mr-2"></i>
-                                    Ajouter au panier
-                                </button>
-                                <button onclick="closeProductModal()" 
-                                        class="w-full btn-touch bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg py-3">
-                                    Annuler
-                                </button>
-                            </div>
-                        </div>
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            if (!grid) return;
+            
+            const filteredProducts = appState.products.filter(product => 
+                product.category_id === appState.currentCategory &&
+                isProductSafeForAllergens(product)
+            );
+            
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
+                        <p class="text-xl text-gray-500">Aucun produit disponible dans cette catégorie</p>
                     </div>
                 `;
-                
-                modal.classList.remove('hidden');
-            }
-
-            function closeProductModal() {
-                document.getElementById('product-modal').classList.add('hidden');
-            }
-
-            function changeQuantity(delta) {
-                const quantitySpan = document.getElementById('modal-quantity');
-                let quantity = parseInt(quantitySpan.textContent) + delta;
-
-                if (quantity < 1) quantity = 1;
-                if (quantity > LIMIT.max_quantity_per_item) quantity = LIMIT.max_quantity_per_item;
-
-                quantitySpan.textContent = quantity;
-            }
-
-            // == Gestion panier ==
-            function addProductToCart(productId) {
-                const product = products.find(p => p.id === productId);
-                if (!product) return;
-                
-                const quantity = parseInt(document.getElementById('modal-quantity').textContent);
-                const instructions = document.getElementById('modal-instructions').value;
-                
-                // Vérifier limite panier
-                if (cart.length >= LIMITS.max_items_per_order) {
-                    showToast(`Maximum ${LIMITS.max_items_per_order} articles différents`, 'error');
-                    return;
-                }
-                
-                // Vérifier allergènes
-                if (!checkAllergenSafety(product)) {
-                    return;
-                }
-                
-                const existingItem = cart.find(item => 
-                    item.product_id === productId && 
-                    item.special_instructions === instructions
-                );
-                
-                if (existingItem) {
-                    if (existingItem.quantity + quantity > LIMITS.max_quantity_per_item) {
-                        showToast(`Maximum ${LIMITS.max_quantity_per_item} unités par article`, 'error');
-                        return;
-                    }
-                    existingItem.quantity += quantity;
-                    existingItem.total_price = existingItem.quantity * existingItem.unit_price;
-                } else {
-                    cart.push({
-                        product_id: productId,
-                        product_name: product.name,
-                        quantity: quantity,
-                        unit_price: product.base_price || 0,
-                        total_price: (product.base_price || 0) * quantity,
-                        special_instructions: instructions || null,
-                        modifiers: [],
-                        variation_id: null,
-                        hiboutik_id: product.hiboutik_id || null
-                    });
-                }
-                
-                updateCartUI();
-                closeProductModal();
-                showToast(`${product.name} ajouté au panier`, 'success');
-            }
-
-            function checkAllergenSafety(product) {
-                if (selectedAllergens.length === 0) return true;
-
-                const productAllergens = product.allergen || [];
-                const conflicts = productAllergens.filter(pa =>
-                    selectedAllergens.includes(pa.allergen_id)
-                );
-
-                if (conflicts.length > 0) {
-                    const allergenName = conflicts.map(c => ALLARGENS[c.allergen_id].name);
-                    return confirm(
-                        `ATTENTION: Ce produit contient: ${allergenNames.join(', ')}\n\n` +
-                        `Voulez-vous quand même l'ajouter au panier ?`
-                    );
-                }
-                return true;
-            }
-
-            function updateCarteUI() {
-                const cartCount = document.getElementById('cart-count');
-                const cartTotal = document.getElementById('cart-total');
-                const cartItems = document.getElementById('cart-items');
-                const btnProceed = document.getElementById('btn-proceed-payment');
-
-                const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-                const total = cart.reduce((sum, item) => sum + item.total_price, 0);
-
-                cartCount.textContent = itemCount;
-                cartTotal.textContent = total.toFixed(2) + ' €';
-
-                // items
-                if (cart.length === 0) {
-                    cartItems.innerHTML = '<p class="text-gray-500 text-center py-4">Panier vide</p>';
-                    btnProceed.disabled = true;
-                } else {
-                    cartItems.innerHTML = cart.map((item, index) => `
-                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                            <div class="flex-1">
-                                <div class="font-medium">${item.product_name}</div>
-                                <div class="text-sm text-gray-600">
-                                    ${item.quantity} x ${item.unit_price.toFixed(2)} €
-                                    ${item.special_instructions ? '<br><em>' + item.special_instructions + '</em>' : ''}
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="font-semibold">${item.total_price.toFixed(2)} €</span>
-                                <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-                    btnProceed.disabled = false;
-                }
-            }
-
-            function removeFromCart(index) {
-                const cart = document.getElementById('floating-cart');
-                // toggle visibility logic
-            }
-
-            function proceedToPayment() {
-                updateCustomerInfo();
-
-                if (!customerInfo.name) {
-                    showToast('Veuillez saisir votre nom', 'error');
-                    document.getElementById('customerName').focus();
-                    return;
-                }
-
-                showStep('step-payment');
-                updateStepIndicator(3);
-                updatePaymentSummary();
-            }
-
-            // == Etape 3: Paiement ==
-            function updatePaymentSummary() {
-                // mode de service
-                const serviceModeEl = document.getElementById('summary-service-mode');
-                serviceModeEl.textContent = serviceMode === 'sur_place' ? 'Sur place' : 'A emporter';
-
-                // table
-                const tableDiv = document.getElementById('summary-table');
-                if (serviceMode === 'sur_place' && tableNumber) {
-                    tableDiv.classList.remove('hidden');
-                    document.getElementById('summary-table-number').textContent = tableNumber;
-                }
-
-                // client
-                document.getElementById('summary-customer-name').textContent = customerInfo.name;
-
-                // items
-                const itemsDiv = document.getElementById('summary-items');
-                itemsDiv.innerHTML = cart.map(item => `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                        <div>
-                            <div class="font-medium">${item.product_name}</div>
-                            <div class="text-sm text-gray-600">Quantité: ${item.quantity}</div>
-                            ${item.special_instructions ? '<div class="text-xs text-blue-600"><em>' + item.special_instructions + '</em></div>' : ''}
-                        </div>
-                        <div class="font-bold">${item.total_price.toFixed(2)} €</div>
-                    </div>
-                `).join('');
-
-                // total
-                const totalTTC = cart.reduce((sum, item) => sum + item.total_price, 0);
-                const totalHT = totalTTC / (1 + LIMITS.tva_rate);
-                const tvaAmount = totalTTC - totalHT;
-
-                document.getElementById('summary-subtotal-ht').textContent = totalHT.toFixed(2) + ' €';
-                document.getElementById('summary-tva').textContent = tvaAmount.toFixed(2) + ' €';
-                document.getElementById('summary-total-tcc').textContent = totalTTC.toFixed(2) + ' €';
-            }
-
-            function selectedPayementMethod(method) {
-                selectedPayementMethod = method;
-
-                // update UI
-                const btnCash = document.getElementById('btn-payment-cash');
-                const btnCard = document.getElementById('btn-payment-card');
-                const btnProcess = document.getElementById('btn-process-order');
-                const btnProcessText = document.getElementById('btn-process-text');
-
-                btnCash.classList.toggle('border-green-400', method === 'cash');
-                btnCard.classList.toggle('border-green-400', method === 'card');
-
-                btnProcess.disabled = false;
-                btnProcessText.textContent = method === 'cash' ?
-                    'Valider et imprimer le ticket' :
-                    'Procéder au payment carte';
-            }
-
-            async function processOrder() {
-                if (!validateOrder()) return;
-
-                showProcessingModal();
-
-                try {
-                    // ÉTAPE 1: Créer la commande
-                    addProcessingStep('Création de la commande...');
-                    const order = await createOrder();
-                    currentOrder = order;
-                    
-                    addProcessingStep(`Commande ${order.order_number} créée`);
-                    
-                    // ÉTAPE 2: Traitement selon le mode de paiement
-                    if (selectedPaymentMethod === 'cash') {
-                        // Paiement espèces - Les 4 étapes Hiboutik
-                        await processCashPayment(order);
-                    } else {
-                        // Paiement carte - VIVA + Hiboutik
-                        await processCardPayment(order);
-                    }
-                    
-                    // Succès
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        showSuccessScreen();
-                        resetKiosk();
-                    }, 2000);
-                } catch (error) {
-                    console.error('Erreur traitement:', error);
-                    hideProcessingModal();
-                    showToast(error.message || 'Erreur lors du traitement', 'error');
-                }
-            }
-
-            function validateOrder() {
-                if (cart.length === 0) {
-                    showToast('Le panier est vide', 'error');
-                    return false;
-                }
-
-                if (!customerInfo.name) {
-                    showToast('Le nom du client est obligatoir', 'error');
-                    return false;
-                }
-
-                if (serviceMode === 'sur_place' && !tableNumber) {
-                    showToast('Numéro de table requis pour le service sur place');
-                    return false;
-                }
-
-                if (!selectedPayementMethod) {
-                    showToast('Sélectionnez un mode de paiement', 'error');
-                    return false;
-                }
-
                 return;
             }
-
-            async function createOrder() {
-                const orderData = {
-                    items: cart,
-                    customer_name: customerInfo.name,
-                    customer_email: customerInfo.email || null,
-                    customer_phone: customerInfo.phone || null,
-                    service_mode: serviceMode,
-                    total_number: serviceMode === 'sur_place' ? tableNumber : null,
-                    order_type: 'kiosk',
-                    payment_method: selectedPayementMethod === 'cash' ? 'cash' : 'viva_card',
-                    special_notes: selectedAllergens.length > 0 ?
-                        `Allergies: ${selectedAllergens.map(id => ALLERGENS[id].name).join(', ')}` : null
-                };
-
-                const response = await fetch(`${API_URL}/api/orders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Erreur création commande');
-                }
-
-                return await response.json();
-            }
-
-            async function processCashPayment(order) {
-                addProcessingStep('Traitement paiement espèces...');
-                addProcessingStep('Création vente Hiboutik...');
-                addProcessingStep('Ajout produits + sortie stock...');
-                addProcessingStep('Enregistrement paiement ESP...');
-                addProcessingStep('Fermeture vente (caisse légale)...');
-                
-                // Simuler les appels (dans la vraie version, appel API)
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                addProcessingStep('Ticket imprimé sur imprimante intégrée');
-                addProcessingStep('Ticket envoyé par email (si fourni)');
-            }
-
-            async function processCardPayment(order) {
-                addProcessingStep('Initialisation terminal VIVA...');
-                addProcessingStep('Traitement paiement carte...');
             
-                // Simuler paiement VIVA
-                await new Promise(resolve => setTimeout(resolve, 3000));
-            
-                addProcessingStep('Paiement carte validé');
-                addProcessingStep('Création vente Hiboutik...');
-                addProcessingStep('Ajout produits + sortie stock...');
-                addProcessingStep('Enregistrement paiement CB...');
-                addProcessingStep('Fermeture vente (caisse légale)...');
-                
-                addProcessingStep('Tickets imprimés (client + cuisine)');
-            }
-
-
-            // == Modales et UI ==
-            function showProcessingModal() {
-                const modal = document.getElementById('processing-modal');
-                const stepDisplay = document.getElementById('processing-steps');
-
-                stepDiv.innerHTML = '';
-                modal.classList.remove('hidden');
-            }
-
-            function hideProcessingModal() {
-                document.getElementById('processing-modal').classList.add('hidden');
-            }
-
-            function addProcessingStep(text) {
-                const stepsDiv = document.getElementById('processing-steps');
-                const step = document.createElement('div');
-                step.className = 'flex items-center space-x-2';
-                step.innerHTML = `
-                    <i class="fas fa-check text-green-500"></i>
-                    <span>${text}</span>
-                `;
-                stepsDiv.appendChild(step);
-            }
-
-            function showSuccessScreen() {
-                // Écran de remerciement
-                const main = document.querySelector('main');
-                main.innerHTML = `
-                    <div class="text-center py-20">
-                        <div class="text-8xl mb-8">🎉</div>
-                        <h1 class="text-4xl font-bold text-green-600 mb-4">Merci pour votre commande !</h1>
-                        <p class="text-xl text-gray-600 mb-8">
-                            ${currentOrder ? `Commande ${currentOrder.order_number}` : 'Votre commande'} a été enregistrée avec succès
-                        </p>
-                        <div class="space-y-4">
-                            <div class="text-lg">
-                                ${serviceMode === 'sur_place' 
-                                    ? `Nous vous servirons à la table ${tableNumber}`
-                                    : 'Votre commande sera prête sous peu'}
-                            </div>
-                            <div class="text-lg font-bold text-blue-600">
-                                ${selectedPaymentMethod === 'cash' 
-                                    ? 'Présentez-vous au comptoir avec votre ticket'
-                                    : 'Paiement confirmé - Restez à proximité'}
-                            </div>
-                        </div>
-                        
-                        <div class="mt-12">
-                            <button onclick="resetKiosk()" 
-                                    class="btn-touch bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-4 rounded-xl text-xl font-bold">
-                                <i class="fas fa-home mr-2"></i>Nouvelle commande
+            grid.innerHTML = filteredProducts.map(product => `
+                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer touch-feedback"
+                     onclick="openProductModal(${product.id})">
+                    <div class="relative">
+                        <img src="${product.image_url}" 
+                             alt="${product.name}" 
+                             class="w-full h-48 object-cover">
+                        ${renderAllergenBadges(product.allergens)}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">${product.name}</h3>
+                        <p class="text-gray-600 text-sm mb-4">${product.description}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-green-600">${product.price.toFixed(2)}€</span>
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-plus mr-1"></i>Ajouter
                             </button>
                         </div>
                     </div>
-                `;
-                
-                // Auto-reset après 30 secondes
-                setTimeout(() => {
-                    resetKiosk();
-                }, 30000);
-            }
+                </div>
+            `).join('');
+        }
 
-            function resetKiosk() {
-                // Reset toutes les variables
-                currentStep = 'service-mode';
-                serviceMode = null;
-                tableNumber = null;
-                customerInfo = {};
-                selectedAllergens = [];
-                cart = [];
-                selectedPaymentMethod = null;
-                currentOrder = null;
-                
-                // Reset UI
-                document.getElementById('customerName').value = '';
-                document.getElementById('customerEmail').value = '';
-                document.getElementById('customerPhone').value = '';
-                
-                // Recharger la page pour repartir de zéro
-                location.reload();
-            }
+        function isProductSafeForAllergens(product) {
+            if (appState.customerAllergens.length === 0) return true;
+            
+            return !product.allergens.some(allergenId => 
+                appState.customerAllergens.includes(allergenId)
+            );
+        }
 
-            // == Helpers ==
-            function showStep(stepId) {
-                // Masquer tous les écrans
-                document.querySelectorAll('.screen').forEach(screen => {
-                    screen.classList.add('hidden');
-                });
-                
-                // Afficher l'écran demandé
-                document.getElementById(stepId).classList.remove('hidden');
-                document.getElementById(stepId).classList.add('slide-in');
-                
-                currentStep = stepId;
-            }
+        function renderAllergenBadges(allergens) {
+            if (!allergens || allergens.length === 0) return '';
+            
+            return `
+                <div class="absolute top-2 left-2">
+                    <div class="flex flex-wrap gap-1">
+                        ${allergens.map(allergenId => {
+                            const allergen = ALLERGENS[allergenId];
+                            return allergen ? `
+                                <span class="allergen-badge bg-red-100 text-red-800" title="${allergen.name}">
+                                    ${allergen.icon} ${allergen.code}
+                                </span>
+                            ` : '';
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
 
-            function updateStepIndicator(step) {
-                document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
-                    const circle = indicator.querySelector('div');
-                    const text = indicator.querySelector('span');
-                    
-                    if (index < step) {
-                        // Étape complétée
-                        circle.className = 'w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold';
-                        text.className = 'ml-2 font-semibold text-green-600';
-                    } else if (index === step) {
-                        // Étape actuelle
-                        circle.className = 'w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold';
-                        text.className = 'ml-2 font-semibold';
-                    } else {
-                        // Étape à venir
-                        circle.className = 'w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold';
-                        text.className = 'ml-2 text-gray-600';
-                    }
-                });
-            }
+        // ========================================
+        // MODAL PRODUIT ET PERSONNALISATION
+        // ========================================
+        
+        function openProductModal(productId) {
+            const product = appState.products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const modal = document.getElementById('product-modal');
+            modal.innerHTML = generateProductModalContent(product);
+            modal.classList.remove('hidden');
+        }
 
-            function updateCustomerInfo() {
-                customerInfo = {
-                    name: document.getElementById('customerName').value.trim(),
-                    email: document.getElementById('customerEmail').value.trim(),
-                    phone: document.getElementById('customerPhone').value.trim(),
-                };
-            }
-
-            function backToMenu() {
-                showStep('step-menu');
-                updateServiceModeIndicator(2);
-            } 
-
-            function showToast(message, type = 'info') {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-
-                const colors = {
-                    success: 'bg-green-500',
-                    error: 'bg-red-500',
-                    info: 'bg-blue-500',
-                    warning: 'bg-yellow-500',
-                };
-
-                toast.className = `${colors[type] || colors.info} text-white px-6 py-3 rounded-lg shadow-lg mb-2 slide-in`;
-                toast.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <span>${message}</span>
-                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4">
+        function generateProductModalContent(product) {
+            return `
+                <div class="bg-white rounded-2xl max-w-3xl w-full mx-4 max-h-screen overflow-y-auto">
+                    <div class="relative">
+                        <img src="${product.image_url}" alt="${product.name}" class="w-full h-64 object-cover">
+                        <button onclick="closeProductModal()" 
+                                class="absolute top-4 right-4 bg-white text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                `;
-                container.appendChild(toast);
+                    
+                    <div class="p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">${product.name}</h2>
+                        <p class="text-gray-600 mb-4">${product.description}</p>
+                        <div class="text-3xl font-bold text-green-600 mb-6">${product.price.toFixed(2)}€</div>
+                        
+                        ${product.options && product.options.sizes ? `
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Choisir la taille</h3>
+                                <div class="grid grid-cols-3 gap-2">
+                                    ${product.options.sizes.map((size, index) => `
+                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors">
+                                            <input type="radio" name="size" value="${size.id}" class="mr-2" ${index === 0 ? 'checked' : ''}>
+                                            <div>
+                                                <div class="font-semibold">${size.name}</div>
+                                                ${size.price > 0 ? `<div class="text-sm text-green-600">+${size.price.toFixed(2)}€</div>` : ''}
+                                            </div>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${product.options && product.options.extras ? `
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Suppléments & Options</h3>
+                                <div class="space-y-2">
+                                    ${product.options.extras.map(extra => `
+                                        <label class="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" name="extras" value="${extra.id}" class="mr-3">
+                                                <span>${extra.name}</span>
+                                            </div>
+                                            <span class="text-green-600 font-semibold">+${extra.price.toFixed(2)}€</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Quantité</h3>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span id="quantity" class="text-2xl font-bold">1</span>
+                                <button onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Instructions spéciales</h3>
+                            <textarea id="special-instructions" 
+                                      class="w-full p-3 border border-gray-300 rounded-lg resize-none" 
+                                      rows="3" 
+                                      placeholder="Ex: Bien cuit, sans sel, etc..."></textarea>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button onclick="closeProductModal()" 
+                                    class="flex-1 bg-gray-300 text-gray-700 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                                Annuler
+                            </button>
+                            <button onclick="addToCart(${product.id})" 
+                                    class="flex-1 btn-primary text-white py-4 rounded-xl text-lg font-semibold hover:opacity-90 touch-feedback">
+                                Ajouter au panier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
-                // auto-remove apres 5s
-                setTimeout(() => {
-                    if (toast.parentElement) {
-                        toast.remove();
-                    }
-                }, 5000);
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        // ========================================
+        // GESTION DU PANIER
+        // ========================================
+        
+        function addToCart(productId) {
+            const product = appState.products.find(p => p.id === productId);
+            if (!product) return;
+
+            const quantity = parseInt(document.getElementById('quantity').textContent) || 1;
+            const specialInstructions = document.getElementById('special-instructions').value;
+
+            // Récupérer les options sélectionnées
+            const selectedSize = document.querySelector('input[name="size"]:checked');
+            const selectedExtras = Array.from(document.querySelectorAll('input[name="extras"]:checked'));
+
+            let totalPrice = product.price * quantity;
+            const options = [];
+
+            // Ajouter le prix de la taille
+            if (selectedSize) {
+                const size = product.options.sizes.find(s => s.id === selectedSize.value);
+                if (size && size.price > 0) {
+                    totalPrice += size.price * quantity;
+                    options.push({ type: 'size', name: size.name, price: size.price });
+                }
             }
 
-        </script>
+            // Ajouter le prix des extras
+            selectedExtras.forEach(extraInput => {
+                const extra = product.options.extras.find(e => e.id === extraInput.value);
+                if (extra) {
+                    totalPrice += extra.price * quantity;
+                    options.push({ type: 'extra', name: extra.name, price: extra.price });
+                }
+            });
 
-    </body>
+            const cartItem = {
+                id: Date.now(), // ID unique pour l'item du panier
+                product_id: product.id,
+                product_name: product.name,
+                quantity: quantity,
+                unit_price: product.price,
+                total_price: totalPrice,
+                options: options,
+                special_instructions: specialInstructions,
+                image_url: product.image_url
+            };
+
+            appState.cart.push(cartItem);
+            updateCartUI();
+            closeProductModal();
+            showToast(`${product.name} ajouté au panier`, 'success');
+        }
+
+        function updateCartUI() {
+            const cartCount = document.getElementById('cart-count');
+            const cartButton = document.getElementById('cart-button');
+            
+            if (appState.cart.length > 0) {
+                cartCount.textContent = appState.cart.length;
+                cartCount.classList.remove('hidden');
+            } else {
+                cartCount.classList.add('hidden');
+            }
+        }
+
+        function openCartModal() {
+            const modal = document.getElementById('cart-modal');
+            renderCartItems();
+            modal.classList.remove('hidden');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        function renderCartItems() {
+            const container = document.getElementById('cart-items');
+            const footer = document.getElementById('cart-footer');
+            
+            if (appState.cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-shopping-cart text-6xl mb-4 opacity-50"></i>
+                        <p class="text-xl">Votre panier est vide</p>
+                    </div>
+                `;
+                footer.classList.add('hidden');
+                return;
+            }
+
+            let total = 0;
+            container.innerHTML = appState.cart.map(item => {
+                total += item.total_price;
+                return `
+                    <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                        <img src="${item.image_url}" alt="${item.product_name}" class="w-16 h-16 object-cover rounded">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${item.product_name}</h4>
+                            <p class="text-sm text-gray-600">Quantité: ${item.quantity}</p>
+                            ${item.options.map(opt => `
+                                <p class="text-xs text-gray-500">+ ${opt.name} (+${opt.price.toFixed(2)}€)</p>
+                            `).join('')}
+                            ${item.special_instructions ? `
+                                <p class="text-xs text-blue-600">Note: ${item.special_instructions}</p>
+                            ` : ''}
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-green-600">${item.total_price.toFixed(2)}€</p>
+                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 text-sm">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cart-total').textContent = `${total.toFixed(2)}€`;
+            footer.classList.remove('hidden');
+        }
+
+        function removeFromCart(itemId) {
+            appState.cart = appState.cart.filter(item => item.id !== itemId);
+            updateCartUI();
+            renderCartItems();
+            showToast('Article supprimé du panier', 'info');
+        }
+
+        // ========================================
+        // PROCESSUS DE PAIEMENT
+        // ========================================
+        
+        function proceedToCheckout() {
+            if (appState.cart.length === 0) {
+                showToast('Votre panier est vide', 'warning');
+                return;
+            }
+
+            closeCartModal();
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        async function processCashPayment() {
+            try {
+                const order = await createOrder('cash');
+                if (order.success) {
+                    showConfirmationScreen(order);
+                }
+            } catch (error) {
+                console.error('Erreur paiement espèces:', error);
+                showToast('Erreur lors du paiement', 'error');
+            }
+        }
+
+        async function processCardPayment() {
+            try {
+                const order = await createOrder('card');
+                if (order.success) {
+                    showConfirmationScreen(order);
+                }
+            } catch (error) {
+                console.error('Erreur paiement carte:', error);
+                showToast('Erreur lors du paiement', 'error');
+            }
+        }
+
+        async function createOrder(paymentMethod) {
+            const orderData = {
+                items: appState.cart,
+                customer_name: `Client ${appState.serviceMode === 'sur_place' ? `Table ${appState.tableNumber}` : 'À emporter'}`,
+                service_mode: appState.serviceMode,
+                table_number: appState.tableNumber,
+                order_type: 'kiosk',
+                payment_method: paymentMethod,
+                customer_allergens: appState.customerAllergens
+            };
+
+            // En production, remplacer par un appel API réel
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve({
+                        success: true,
+                        order_number: `BC-${String(Date.now()).slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                        estimated_time: '15-20 minutes'
+                    });
+                }, 1000);
+            });
+        }
+
+        function showConfirmationScreen(order) {
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.getElementById('order-number').textContent = `#${order.order_number}`;
+            document.getElementById('estimated-time').textContent = order.estimated_time;
+            document.getElementById('confirmation-screen').classList.remove('hidden');
+        }
+
+        function startNewOrder() {
+            // Réinitialiser l'état
+            appState.cart = [];
+            appState.serviceMode = null;
+            appState.tableNumber = null;
+            appState.customerAllergens = [];
+            
+            // Masquer l'écran de confirmation
+            document.getElementById('confirmation-screen').classList.add('hidden');
+            
+            // Réinitialiser les checkboxes allergènes
+            document.querySelectorAll('.allergen-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Retourner à l'écran de sélection du service
+            showScreen('service-mode-screen');
+            updateCartUI();
+        }
+
+        // ========================================
+        // UTILITAIRES
+        // ========================================
+        
+        function increaseQuantity() {
+            const quantityEl = document.getElementById('quantity');
+            const current = parseInt(quantityEl.textContent);
+            if (current < 20) { // Limite max
+                quantityEl.textContent = current + 1;
+            }
+        }
+
+        function decreaseQuantity() {
+            const quantityEl = document.getElementById('quantity');
+            const current = parseInt(quantityEl.textContent);
+            if (current > 1) {
+                quantityEl.textContent = current - 1;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.className = `${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 slide-in-up`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        function initScreensaver() {
+            let inactivityTimer;
+            const SCREENSAVER_DELAY = 5 * 60 * 1000; // 5 minutes
+            
+            function resetTimer() {
+                clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(() => {
+                    // Activer l'écran de veille
+                    console.log('Activation écran de veille');
+                }, SCREENSAVER_DELAY);
+            }
+            
+            // Écouter les événements d'activité
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetTimer, true);
+            });
+            
+            resetTimer();
+        }
+
+        // Gestion de la connectivité
+        window.addEventListener('online', () => {
+            document.getElementById('connection-indicator').innerHTML = '<i class="fas fa-wifi mr-2"></i>En ligne';
+            document.getElementById('connection-indicator').className = 'bg-green-500 text-white px-4 py-2 rounded-full text-sm';
+        });
+
+        window.addEventListener('offline', () => {
+            document.getElementById('connection-indicator').innerHTML = '<i class="fas fa-wifi-slash mr-2"></i>Hors ligne';
+            document.getElementById('connection-indicator').className = 'bg-red-500 text-white px-4 py-2 rounded-full text-sm';
+        });
+
+        // Gestion des erreurs globales
+        window.addEventListener('error', (event) => {
+            console.error('Erreur globale:', event.error);
+            if (CONFIG && CONFIG.DEBUG && CONFIG.DEBUG.SHOW_ERRORS) {
+                showToast('Une erreur est survenue', 'error');
+            }
+        });
+
+        // Export des fonctions pour les tests
+        window.kioskApp = {
+            setServiceMode,
+            setTableNumber,
+            toggleAllergen,
+            openProductModal,
+            addToCart,
+            showToast
+        };
+    </script>
+</body>
 </html>
