@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>🍹 Brasserie Claouey - Commandez vos repas!</title>
+        <title>🹍 Brasserie Claouey - Commandez vos repas!</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <style>
@@ -99,6 +99,82 @@
                 left: 0;
                 right: 0;
                 z-index: 1000;
+            }
+
+            /* Barre de progression des étapes */
+            .progress-steps {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 2rem;
+                margin: 1rem 0 2rem 0;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 50px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            .step {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                position: relative;
+            }
+
+            .step-circle {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 1.2rem;
+                transition: all 0.3s ease;
+                border: 3px solid #e5e7eb;
+                background: white;
+                color: #9ca3af;
+            }
+
+            .step-circle.active {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--tertiary) 100%);
+                color: white;
+                border-color: transparent;
+                transform: scale(1.1);
+                box-shadow: 0 8px 25px rgba(30, 64, 175, 0.4);
+            }
+
+            .step-circle.completed {
+                background: var(--success);
+                color: white;
+                border-color: transparent;
+            }
+
+            .step-text {
+                font-weight: 600;
+                color: #9ca3af;
+                transition: color 0.3s ease;
+            }
+
+            .step.active .step-text {
+                color: var(--primary);
+            }
+
+            .step.completed .step-text {
+                color: var(--success);
+            }
+
+            .step-connector {
+                width: 80px;
+                height: 3px;
+                background: #e5e7eb;
+                border-radius: 2px;
+                transition: background 0.3s ease;
+            }
+
+            .step-connector.active {
+                background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
             }
 
             /* Boutons attractifs */
@@ -433,6 +509,25 @@
                     width: 70px;
                     height: 70px;
                 }
+
+                .progress-steps {
+                    gap: 1rem;
+                    padding: 0.5rem;
+                }
+
+                .step-circle {
+                    width: 50px;
+                    height: 50px;
+                    font-size: 1rem;
+                }
+
+                .step-connector {
+                    width: 50px;
+                }
+
+                .step-text {
+                    font-size: 0.875rem;
+                }
             }
         </style>
     </head>
@@ -457,10 +552,34 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Barre de progression des étapes -->
+            <div class="progress-steps max-w-4xl mx-auto" id="progressSteps">
+                <div class="step active" id="step1">
+                    <div class="step-circle">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <span class="step-text">Service</span>
+                </div>
+                <div class="step-connector" id="connector1"></div>
+                <div class="step" id="step2">
+                    <div class="step-circle">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <span class="step-text">Produits</span>
+                </div>
+                <div class="step-connector" id="connector2"></div>
+                <div class="step" id="step3">
+                    <div class="step-circle">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <span class="step-text">Paiement</span>
+                </div>
+            </div>
         </header>
 
         <!-- Contenu principal -->
-        <main class="pt-28 pb-32 px-4 max-w-7xl mx-auto">
+        <main class="pt-40 pb-32 px-4 max-w-7xl mx-auto">
             <!-- Étape 1: Sélection du mode de service -->
             <div id="service-mode-screen" class="slide-in-up">
                 <div class="text-center mb-12 bounce-in">
@@ -647,7 +766,7 @@
             </div>
         </div>
 
-        <!-- Modal Produit -->
+        <!-- Modal Produit avec options de personnalisation -->
         <div class="modern-modal" id="productModal">
             <!-- Contenu généré dynamiquement -->
         </div>
@@ -667,6 +786,13 @@
                             class="bg-blue-500 text-white p-8 rounded-xl text-xl font-semibold hover:bg-blue-600 touch-feedback">
                         <i class="fas fa-credit-card text-6xl mb-4"></i>
                         <br>Carte Bancaire
+                    </button>
+                </div>
+
+                <div class="text-center mt-6">
+                    <button onclick="closePaymentModal()" 
+                            class="bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-400 touch-feedback">
+                        Annuler
                     </button>
                 </div>
             </div>
@@ -717,6 +843,52 @@
                 14: { code: 'MOL', name: 'Mollusques', icon: '🦪' }
             };
 
+            // Configuration des options de produits (type McDonald's)
+            const PRODUCT_OPTIONS = {
+                burgers: {
+                    sizes: [
+                        { id: 'normal', name: 'Normal', price: 0 },
+                        { id: 'maxi', name: 'Maxi', price: 2.50 }
+                    ],
+                    extras: [
+                        { id: 'bacon', name: 'Bacon supplémentaire', price: 1.50 },
+                        { id: 'cheese', name: 'Fromage supplémentaire', price: 1.00 },
+                        { id: 'no_onions', name: 'Sans oignons', price: 0 },
+                        { id: 'no_pickles', name: 'Sans cornichons', price: 0 }
+                    ],
+                    sauces: [
+                        { id: 'ketchup', name: 'Ketchup', price: 0 },
+                        { id: 'mayo', name: 'Mayonnaise', price: 0 },
+                        { id: 'bbq', name: 'Sauce BBQ', price: 0.50 }
+                    ]
+                },
+                boissons: {
+                    sizes: [
+                        { id: 'small', name: 'Petit (33cl)', price: 0 },
+                        { id: 'medium', name: 'Moyen (50cl)', price: 0.50 },
+                        { id: 'large', name: 'Grand (75cl)', price: 1.00 }
+                    ],
+                    ice: [
+                        { id: 'normal', name: 'Glaçons normaux', price: 0 },
+                        { id: 'no_ice', name: 'Sans glaçons', price: 0 },
+                        { id: 'extra_ice', name: 'Beaucoup de glaçons', price: 0 }
+                    ]
+                },
+                pizzas: {
+                    sizes: [
+                        { id: 'small', name: 'Petite (26cm)', price: 0 },
+                        { id: 'medium', name: 'Moyenne (30cm)', price: 3.00 },
+                        { id: 'large', name: 'Grande (34cm)', price: 5.00 }
+                    ],
+                    extras: [
+                        { id: 'extra_cheese', name: 'Supplément fromage', price: 2.00 },
+                        { id: 'pepperoni', name: 'Pepperoni', price: 2.50 },
+                        { id: 'mushrooms', name: 'Champignons', price: 1.50 },
+                        { id: 'olives', name: 'Olives', price: 1.50 }
+                    ]
+                }
+            };
+
             // Configuration des tables (20 tables)
             const TABLE_NUMBERS = Array.from({length: 20}, (_, i) => i + 1);
             const TABLE_STATUS = {}; // Simuler statut des tables
@@ -724,13 +896,15 @@
             // État de l'application
             const appState = {
                 currentScreen: 'service-mode',
+                currentStep: 1,
                 serviceMode: null,
                 tableNumber: null,
                 customerAllergens: [],
                 cart: [],
                 currentCategory: 'all',
                 products: [],
-                categories: []
+                categories: [],
+                promoApplied: false
             };
 
             // Base de données produits simulée
@@ -804,6 +978,7 @@
                 generateAllergenGrid();
                 generateTableGrid();
                 initializeEventListeners();
+                updateStepProgress();
             });
 
             function initializeEventListeners() {
@@ -811,6 +986,32 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) {
                     searchInput.addEventListener('input', debounce(handleSearch, 300));
+                }
+            }
+
+            // GESTION DES ÉTAPES DE PROGRESSION
+
+            function updateStepProgress() {
+                // Reset all steps
+                for (let i = 1; i <= 3; i++) {
+                    const step = document.getElementById(`step${i}`);
+                    const connector = document.getElementById(`connector${i}`);
+                    
+                    step.classList.remove('active', 'completed');
+                    if (connector) connector.classList.remove('active');
+                }
+
+                // Set current and completed steps
+                for (let i = 1; i <= 3; i++) {
+                    const step = document.getElementById(`step${i}`);
+                    const connector = document.getElementById(`connector${i}`);
+                    
+                    if (i < appState.currentStep) {
+                        step.classList.add('completed');
+                        if (connector) connector.classList.add('active');
+                    } else if (i === appState.currentStep) {
+                        step.classList.add('active');
+                    }
                 }
             }
 
@@ -846,6 +1047,8 @@
             function goBackToServiceMode() {
                 appState.serviceMode = null;
                 appState.tableNumber = null;
+                appState.currentStep = 1;
+                updateStepProgress();
                 showScreen('service-mode-screen');
             }
 
@@ -924,6 +1127,7 @@
                     appState.customerAllergens = appState.customerAllergens.filter(id => id !== allergenId);
                     card.classList.remove('selected');
                     checkbox.checked = false;
+                    card.querySelector('.text-4xl').textContent = ALLERGENS[allergenId].icon;
                 } else {
                     // Ajouter l'allergène
                     appState.customerAllergens.push(allergenId);
@@ -946,6 +1150,8 @@
             }
 
             function proceedToMenu() {
+                appState.currentStep = 2;
+                updateStepProgress();
                 showScreen('main-menu-screen');
                 renderCategories();
                 renderProducts();
@@ -1050,7 +1256,9 @@
                 const product = appState.products.find(p => p.id === productId);
                 if (!product) return;
                 
+                const options = PRODUCT_OPTIONS[product.category] || {};
                 const modal = document.getElementById('productModal');
+                
                 modal.innerHTML = `
                     <div class="modal-content">
                         <button onclick="closeProductModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
@@ -1061,7 +1269,7 @@
                             <div class="text-6xl mb-4">${product.emoji}</div>
                             <h2 class="text-3xl font-bold mb-2">${product.name}</h2>
                             <p class="text-gray-600 mb-4">${product.description}</p>
-                            <div class="text-3xl font-bold text-green-600 mb-6">${product.price.toFixed(2)}€</div>
+                            <div class="text-3xl font-bold text-green-600 mb-6" id="modal-price">${product.price.toFixed(2)}€</div>
                         </div>
                         
                         ${product.allergens.length > 0 ? `
@@ -1077,14 +1285,72 @@
                             </div>
                         ` : ''}
                         
+                        ${options.sizes ? `
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3">Choisir la taille</h3>
+                                <div class="grid grid-cols-${Math.min(options.sizes.length, 3)} gap-2">
+                                    ${options.sizes.map(size => `
+                                        <button class="size-option p-3 border rounded hover:bg-blue-100 touch-feedback" 
+                                                data-size="${size.id}" 
+                                                data-price="${size.price}" 
+                                                onclick="selectProductOption('size', '${size.id}', ${size.price})">
+                                            ${size.name}
+                                            ${size.price > 0 ? `<br><span class="text-sm text-green-600">+${size.price}€</span>` : ''}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${options.extras ? `
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3">Suppléments & Options</h3>
+                                <div class="space-y-2">
+                                    ${options.extras.map(extra => `
+                                        <label class="flex items-center justify-between p-2 hover:bg-gray-50 rounded touch-feedback">
+                                            <span>${extra.name}</span>
+                                            <div class="flex items-center">
+                                                ${extra.price > 0 ? `<span class="mr-2 text-green-600">+${extra.price}€</span>` : ''}
+                                                <input type="checkbox" 
+                                                       class="extra-option" 
+                                                       data-extra="${extra.id}" 
+                                                       data-price="${extra.price}"
+                                                       onchange="toggleProductExtra('${extra.id}', ${extra.price})">
+                                            </div>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${options.sauces ? `
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3">Sauces</h3>
+                                <div class="grid grid-cols-2 gap-2">
+                                    ${options.sauces.map(sauce => `
+                                        <label class="flex items-center p-2 border rounded hover:bg-gray-50 cursor-pointer touch-feedback">
+                                            <input type="radio" 
+                                                   name="sauce" 
+                                                   class="mr-2" 
+                                                   value="${sauce.id}"
+                                                   data-price="${sauce.price}"
+                                                   onchange="selectProductOption('sauce', '${sauce.id}', ${sauce.price})">
+                                            <span>${sauce.name}</span>
+                                            ${sauce.price > 0 ? `<span class="ml-auto text-green-600">+${sauce.price}€</span>` : ''}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
                         <div class="mb-6">
                             <h3 class="text-lg font-semibold mb-3">Quantité</h3>
                             <div class="flex items-center justify-center space-x-4">
-                                <button onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-12 h-12 rounded-full flex items-center justify-center">
+                                <button onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-12 h-12 rounded-full flex items-center justify-center touch-feedback">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <span id="quantity" class="text-2xl font-bold">1</span>
-                                <button onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-12 h-12 rounded-full flex items-center justify-center">
+                                <button onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-12 h-12 rounded-full flex items-center justify-center touch-feedback">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -1110,11 +1376,78 @@
                         </div>
                     </div>
                 `;
+                
+                // Sélectionner la première taille par défaut si disponible
+                if (options.sizes && options.sizes.length > 0) {
+                    document.querySelector('.size-option').click();
+                }
+                
                 modal.classList.add('active');
+            }
+
+            // Variables pour stocker les options sélectionnées
+            let selectedOptions = {
+                size: null,
+                sizePrice: 0,
+                sauce: null,
+                saucePrice: 0,
+                extras: [],
+                extrasPrice: 0
+            };
+
+            function selectProductOption(type, optionId, price) {
+                if (type === 'size') {
+                    // Retirer la sélection précédente
+                    document.querySelectorAll('.size-option').forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                    });
+                    
+                    // Ajouter la nouvelle sélection
+                    event.target.classList.add('bg-blue-500', 'text-white');
+                    selectedOptions.size = optionId;
+                    selectedOptions.sizePrice = price;
+                } else if (type === 'sauce') {
+                    selectedOptions.sauce = optionId;
+                    selectedOptions.saucePrice = price;
+                }
+                
+                updateModalPrice();
+            }
+
+            function toggleProductExtra(extraId, price) {
+                const checkbox = event.target;
+                
+                if (checkbox.checked) {
+                    selectedOptions.extras.push({ id: extraId, price: price });
+                    selectedOptions.extrasPrice += price;
+                } else {
+                    selectedOptions.extras = selectedOptions.extras.filter(extra => extra.id !== extraId);
+                    selectedOptions.extrasPrice = selectedOptions.extras.reduce((sum, extra) => sum + extra.price, 0);
+                }
+                
+                updateModalPrice();
+            }
+
+            function updateModalPrice() {
+                const basePrice = parseFloat(document.getElementById('modal-price').textContent);
+                const productId = parseInt(document.querySelector('[onclick*="addToCart"]').getAttribute('onclick').match(/\d+/)[0]);
+                const product = appState.products.find(p => p.id === productId);
+                
+                const totalPrice = product.price + selectedOptions.sizePrice + selectedOptions.saucePrice + selectedOptions.extrasPrice;
+                document.getElementById('modal-price').textContent = `${totalPrice.toFixed(2)}€`;
             }
 
             function closeProductModal() {
                 document.getElementById('productModal').classList.remove('active');
+                // Réinitialiser les options sélectionnées
+                selectedOptions = {
+                    size: null,
+                    sizePrice: 0,
+                    sauce: null,
+                    saucePrice: 0,
+                    extras: [],
+                    extrasPrice: 0
+                };
             }
 
             // GESTION DU PANIER
@@ -1125,6 +1458,27 @@
 
                 const quantity = parseInt(document.getElementById('quantity').textContent) || 1;
                 const specialInstructions = document.getElementById('special-instructions').value;
+                
+                // Calculer le prix total avec les options
+                const basePrice = product.price;
+                const optionsPrice = selectedOptions.sizePrice + selectedOptions.saucePrice + selectedOptions.extrasPrice;
+                const unitPrice = basePrice + optionsPrice;
+                const totalPrice = unitPrice * quantity;
+
+                // Créer l'objet options pour l'affichage
+                const options = [];
+                if (selectedOptions.size) {
+                    const sizeOption = PRODUCT_OPTIONS[product.category]?.sizes?.find(s => s.id === selectedOptions.size);
+                    if (sizeOption) options.push(sizeOption.name);
+                }
+                if (selectedOptions.sauce) {
+                    const sauceOption = PRODUCT_OPTIONS[product.category]?.sauces?.find(s => s.id === selectedOptions.sauce);
+                    if (sauceOption) options.push(sauceOption.name);
+                }
+                selectedOptions.extras.forEach(extra => {
+                    const extraOption = PRODUCT_OPTIONS[product.category]?.extras?.find(e => e.id === extra.id);
+                    if (extraOption) options.push(extraOption.name);
+                });
 
                 const cartItem = {
                     id: Date.now(),
@@ -1132,10 +1486,12 @@
                     product_name: product.name,
                     product_emoji: product.emoji,
                     quantity: quantity,
-                    unit_price: product.price,
-                    total_price: product.price * quantity,
+                    unit_price: unitPrice,
+                    total_price: totalPrice,
                     special_instructions: specialInstructions,
-                    image_url: product.image_url
+                    image_url: product.image_url,
+                    options: options,
+                    selectedOptions: { ...selectedOptions }
                 };
 
                 appState.cart.push(cartItem);
@@ -1207,7 +1563,7 @@
                 }
 
                 let total = appState.cart.reduce((sum, item) => sum + item.total_price, 0);
-                const discount = appState.cart.length >= 3 ? 0.1 : 0;
+                const discount = appState.cart.reduce((sum, item) => sum + item.quantity, 0) >= 3 ? 0.1 : 0;
                 const finalTotal = total * (1 - discount);
                 
                 container.innerHTML = appState.cart.map(item => `
@@ -1216,13 +1572,16 @@
                         <div class="flex-1">
                             <h4 class="font-semibold text-gray-800">${item.product_name}</h4>
                             <p class="text-sm text-gray-600">Quantité: ${item.quantity}</p>
+                            ${item.options && item.options.length > 0 ? `
+                                <p class="text-xs text-blue-600">Options: ${item.options.join(', ')}</p>
+                            ` : ''}
                             ${item.special_instructions ? `
                                 <p class="text-xs text-blue-600">Note: ${item.special_instructions}</p>
                             ` : ''}
                         </div>
                         <div class="text-right">
                             <p class="font-bold text-green-600">${item.total_price.toFixed(2)}€</p>
-                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 text-sm">
+                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 text-sm touch-feedback">
                                 <i class="fas fa-trash"></i> Supprimer
                             </button>
                         </div>
@@ -1231,8 +1590,8 @@
                 
                 if (discount > 0) {
                     container.innerHTML += `
-                        <div class="text-center text-green-600 font-semibold p-4">
-                            🎉 Réduction de 10% appliquée !
+                        <div class="text-center text-green-600 font-semibold p-4 bg-green-50 rounded-lg">
+                            🎉 Réduction de 10% appliquée ! (-${(total * discount).toFixed(2)}€)
                         </div>
                     `;
                 }
@@ -1256,6 +1615,8 @@
                     return;
                 }
 
+                appState.currentStep = 3;
+                updateStepProgress();
                 closeCart();
                 document.getElementById('paymentModal').classList.add('active');
             }
@@ -1268,20 +1629,58 @@
                 processPayment('card');
             }
 
+            function closePaymentModal() {
+                document.getElementById('paymentModal').classList.remove('active');
+                // Retourner à l'étape 2 si on annule
+                appState.currentStep = 2;
+                updateStepProgress();
+            }
+
             async function processPayment(method) {
                 document.getElementById('paymentModal').classList.remove('active');
                 
-                showToast('Traitement du paiement en cours...', 'info');
+                const paymentText = method === 'cash' ? 'espèces' : 'carte bancaire';
+                showToast(`Traitement du paiement ${paymentText} en cours...`, 'info');
                 
-                // Simuler le traitement
+                // Simuler le traitement du paiement
                 setTimeout(() => {
+                    // Créer la commande
+                    const order = createOrder(method);
+                    console.log('Commande créée:', order);
+                    
                     showConfirmationScreen();
                 }, 2000);
+            }
+
+            function createOrder(paymentMethod) {
+                const total = appState.cart.reduce((sum, item) => sum + item.total_price, 0);
+                const discount = appState.cart.reduce((sum, item) => sum + item.quantity, 0) >= 3 ? 0.1 : 0;
+                const finalTotal = total * (1 - discount);
+                
+                return {
+                    order_number: `BC-${Date.now().toString().slice(-6)}`,
+                    service_mode: appState.serviceMode,
+                    table_number: appState.tableNumber,
+                    customer_allergens: appState.customerAllergens,
+                    items: appState.cart,
+                    subtotal: total,
+                    discount_percentage: discount * 100,
+                    discount_amount: total * discount,
+                    total_amount: finalTotal,
+                    payment_method: paymentMethod,
+                    created_at: new Date().toISOString()
+                };
             }
 
             function showConfirmationScreen() {
                 const orderNumber = `BC-${Date.now().toString().slice(-6)}`;
                 document.getElementById('order-number').textContent = `#${orderNumber}`;
+                
+                // Estimer le temps d'attente basé sur le nombre d'articles
+                const itemCount = appState.cart.reduce((sum, item) => sum + item.quantity, 0);
+                const estimatedTime = Math.max(10, Math.min(30, itemCount * 3)) + '-' + (Math.max(10, Math.min(30, itemCount * 3)) + 5);
+                document.getElementById('estimated-time').textContent = `${estimatedTime} minutes`;
+                
                 document.getElementById('confirmation-screen').classList.remove('hidden');
                 
                 createConfetti();
@@ -1295,6 +1694,7 @@
                 appState.tableNumber = null;
                 appState.customerAllergens = [];
                 appState.promoApplied = false;
+                appState.currentStep = 1;
                 
                 // Masquer l'écran de confirmation
                 document.getElementById('confirmation-screen').classList.add('hidden');
@@ -1302,9 +1702,17 @@
                 // Réinitialiser les checkboxes allergènes
                 document.querySelectorAll('.allergen-card').forEach(card => {
                     card.classList.remove('selected');
+                    const checkbox = card.querySelector('input[type="checkbox"]');
+                    if (checkbox) checkbox.checked = false;
+                    const icon = card.querySelector('.text-4xl');
+                    const allergenId = checkbox.value;
+                    if (icon && ALLERGENS[allergenId]) {
+                        icon.textContent = ALLERGENS[allergenId].icon;
+                    }
                 });
                 
                 // Retourner à l'écran de sélection du service
+                updateStepProgress();
                 showScreen('service-mode-screen');
                 updateCartUI();
             }
@@ -1316,6 +1724,7 @@
                 const current = parseInt(quantityEl.textContent);
                 if (current < 20) {
                     quantityEl.textContent = current + 1;
+                    updateModalPrice();
                 }
             }
 
@@ -1324,6 +1733,7 @@
                 const current = parseInt(quantityEl.textContent);
                 if (current > 1) {
                     quantityEl.textContent = current - 1;
+                    updateModalPrice();
                 }
             }
 
@@ -1335,10 +1745,19 @@
                     return;
                 }
                 
-                const filteredProducts = appState.products.filter(product => 
+                let filteredProducts = appState.products.filter(product => 
                     product.name.toLowerCase().includes(query) ||
                     product.description.toLowerCase().includes(query)
                 );
+
+                // Appliquer aussi le filtre des allergènes
+                if (appState.customerAllergens.length > 0) {
+                    filteredProducts = filteredProducts.filter(product => 
+                        !product.allergens.some(allergenId => 
+                            appState.customerAllergens.includes(allergenId)
+                        )
+                    );
+                }
                 
                 const grid = document.getElementById('products-grid');
                 if (filteredProducts.length === 0) {
@@ -1425,15 +1844,51 @@
                 document.getElementById('connection-indicator').className = 'bg-red-500 text-white px-4 py-2 rounded-full text-sm';
             });
 
-            // API pour intégration
+            // API pour intégration future avec backend
             window.kioskApp = {
+                // Méthodes de navigation
                 setServiceMode,
                 setTableNumber,
                 toggleAllergen,
+                
+                // Méthodes de produits
                 showProductModal,
                 addToCart,
+                removeFromCart,
+                
+                // Méthodes de paiement
+                proceedToCheckout,
+                processPayment,
+                
+                // Utilitaires
                 showToast,
-                getState: () => appState
+                createConfetti,
+                
+                // État de l'application
+                getState: () => appState,
+                
+                // Méthodes pour l'intégration API
+                loadProducts: (products) => {
+                    appState.products = products;
+                    renderProducts();
+                },
+                loadCategories: (categories) => {
+                    appState.categories = categories;
+                    renderCategories();
+                },
+                
+                // Simulation d'appel API
+                submitOrder: async (order) => {
+                    console.log('Envoi de la commande au backend:', order);
+                    // Ici on intégrerait l'appel à l'API backend
+                    // const response = await fetch('/api/orders', {
+                    //     method: 'POST',
+                    //     headers: { 'Content-Type': 'application/json' },
+                    //     body: JSON.stringify(order)
+                    // });
+                    // return response.json();
+                    return { success: true, order_id: Date.now() };
+                }
             };
 
             console.log('✅ Kiosque prêt ! API disponible via window.kioskApp');
