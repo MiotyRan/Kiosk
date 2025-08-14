@@ -1,268 +1,661 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brasserie Claouey - Kiosque de Commande</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        /* Configuration Tailwind personnalisée */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-            touch-action: manipulation;
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .product-card {
-            transition: all 0.3s ease-in-out;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .cart-badge {
-            animation: pulse 2s infinite;
-        }
-        
-        .modal {
-            backdrop-filter: blur(10px);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #1e40af, #1e3a8a);
-        }
-        
-        .allergen-badge {
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 12px;
-        }
-        
-        /* Animations */
-        @keyframes slideInUp {
-            from {
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>🍹 Brasserie Claouey - Commandez vos repas!</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <style>
+            /* Import Google Fonts */
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+            /* Variables CSS pour thème coloré */
+            :root {
+                --primary: #1e40af;
+                --secondary: #16a34a; 
+                --tertiary: #eab308;    
+                --accent: #f59e0b;      
+                --success: #22c55e; 
+                --bg-gradient: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #eab308 100%);
+                --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                --bounce-timing: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            body {
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                overflow-x: hidden;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: manipulation;
+            }
+
+            /* Animations globales */
+            @keyframes pulse-glow {
+                0%, 100% { box-shadow: 0 0 20px rgba(30, 64, 175, 0.5); }
+                50% { box-shadow: 0 0 40px rgba(30, 64, 175, 0.8); }
+            }
+
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+
+            @keyframes confetti-fall {
+                0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            }
+
+            @keyframes bounce-in {
+                0% { transform: scale(0.8); opacity: 0; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Classes d'animation */
+            .pulse-glow {
+                animation: pulse-glow 2s ease-in-out infinite;
+            }
+
+            .shake-animation {
+                animation: shake 0.5s ease-in-out;
+            }
+
+            .bounce-in {
+                animation: bounce-in 0.4s ease-out;
+            }
+
+            .slide-in-up {
+                animation: slideInUp 0.3s ease-out;
+            }
+
+            /* Header moderne */
+            .modern-header {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+
+            /* Boutons attractifs */
+            .action-button {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--tertiary) 100%);
+                color: white;
+                border: none;
+                border-radius: 50px;
+                padding: 15px 30px;
+                font-weight: 600;
+                font-size: 18px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .action-button:before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+
+            .action-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(30, 64, 175, 0.3);
+            }
+
+            .action-button:active:before {
+                width: 300px;
+                height: 300px;
+            }
+
+            /* Service mode cards */
+            .service-card {
+                background: white;
+                border-radius: 30px;
+                padding: 3rem;
+                cursor: pointer;
+                transition: all 0.4s ease;
+                position: relative;
+                overflow: hidden;
+                border: 2px solid transparent;
+            }
+
+            .service-card:before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.5s;
+            }
+
+            .service-card:hover:before {
+                left: 100%;
+            }
+
+            .service-card:hover {
+                transform: translateY(-10px) scale(1.02);
+                box-shadow: 0 25px 50px rgba(30, 64, 175, 0.15);
+                border-color: var(--primary);
+            }
+
+            .service-card:active {
+                transform: translateY(-5px) scale(0.98);
+            }
+
+            /* Table selection */
+            .table-button {
+                background: white;
+                border: 3px solid #e5e7eb;
+                border-radius: 20px;
+                padding: 2rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .table-button:hover {
+                border-color: var(--primary);
+                background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);
+                transform: translateY(-5px);
+            }
+
+            .table-button.occupied {
+                border-color: #ef4444;
+                background: #fee2e2;
+                cursor: not-allowed;
+            }
+
+            .table-button.selected {
+                border-color: var(--primary);
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+            }
+
+            /* Allergen selection */
+            .allergen-card {
+                background: white;
+                border: 2px solid #e5e7eb;
+                border-radius: 15px;
+                padding: 1rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .allergen-card:hover {
+                border-color: var(--tertiary);
+                background: #fef3c7;
+            }
+
+            .allergen-card.selected {
+                border-color: var(--tertiary);
+                background: linear-gradient(135deg, #fbbf24 0%, var(--tertiary) 100%);
+                color: #92400e;
+                transform: scale(1.05);
+            }
+
+            /* Product cards */
+            .product-card {
+                background: white;
+                border-radius: 20px;
+                overflow: hidden;
+                transform-style: preserve-3d;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                position: relative;
+            }
+
+            .product-card:hover {
+                transform: translateY(-10px) scale(1.02);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            }
+
+            .product-card:active {
+                transform: translateY(-5px) scale(0.98);
+            }
+
+            .product-card.selected {
+                border: 3px solid var(--primary);
+                box-shadow: 0 0 30px rgba(30, 64, 175, 0.4);
+            }
+
+            /* Floating cart */
+            .floating-cart {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--tertiary) 100%);
+                color: white;
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 10px 30px rgba(30, 64, 175, 0.4);
+                transition: all 0.3s ease;
+                z-index: 999;
+            }
+
+            .floating-cart:hover {
+                transform: scale(1.1) rotate(10deg);
+                box-shadow: 0 15px 40px rgba(30, 64, 175, 0.6);
+            }
+
+            .floating-cart.has-items {
+                animation: pulse-glow 2s ease-in-out infinite;
+            }
+
+            /* Badge de quantité */
+            .quantity-badge {
+                background: var(--accent);
+                color: white;
+                border-radius: 20px;
+                padding: 5px 15px;
+                font-weight: 700;
+                font-size: 14px;
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                animation: bounce-in 0.5s ease;
+            }
+
+            /* Modal moderne */
+            .modern-modal {
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                position: fixed;
+                inset: 0;
+                z-index: 2000;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .modern-modal.active {
+                display: flex;
+            }
+
+            .modal-content {
+                background: white;
+                border-radius: 30px;
+                padding: 40px;
+                max-width: 600px;
+                width: 100%;
+                position: relative;
+                animation: bounce-in 0.5s var(--bounce-timing);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            /* Toast notifications */
+            .fun-toast {
+                position: fixed;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-100px);
+                background: white;
+                padding: 20px 40px;
+                border-radius: 50px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                font-weight: 600;
                 opacity: 0;
-                transform: translateY(30px);
+                transition: all 0.5s var(--bounce-timing);
+                z-index: 3000;
             }
-            to {
+
+            .fun-toast.show {
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
-                transform: translateY(0);
             }
-        }
-        
-        .slide-in-up {
-            animation: slideInUp 0.3s ease-out;
-        }
-        
-        /* Touch feedback */
-        .touch-feedback:active {
-            transform: scale(0.98);
-        }
-        
-        /* Scrollbar personnalisée */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
-        <div class="container mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <i class="fas fa-utensils text-3xl"></i>
+
+            .fun-toast.success {
+                background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
+                color: white;
+            }
+
+            .fun-toast.info {
+                background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
+                color: white;
+            }
+
+            .fun-toast.error {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+            }
+
+            /* Touch feedback */
+            .touch-feedback:active {
+                transform: scale(0.98);
+            }
+
+            /* Progress bar */
+            .progress-bar {
+                background: #f0f0f0;
+                height: 8px;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--tertiary) 100%);
+                border-radius: 10px;
+                transition: width 0.5s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .progress-fill:after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+                animation: shimmer 2s infinite;
+            }
+
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+
+            /* Categories */
+            .category-pill {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+                padding: 12px 30px;
+                border-radius: 30px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .category-pill:hover {
+                transform: translateY(-3px) scale(1.05);
+                box-shadow: 0 5px 20px rgba(30, 64, 175, 0.4);
+            }
+
+            .category-pill.active {
+                background: linear-gradient(135deg, var(--secondary) 0%, var(--tertiary) 100%);
+                transform: scale(1.1);
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .service-card {
+                    padding: 2rem;
+                }
+                
+                .floating-cart {
+                    bottom: 20px;
+                    right: 20px;
+                    width: 70px;
+                    height: 70px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <header class="modern-header py-4 px-6">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl animated-emoji">🍽️</div>
                     <div>
-                        <h1 class="text-2xl font-bold">Brasserie Claouey</h1>
-                        <p class="text-sm opacity-90">Commande en libre-service</p>
+                        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-yellow-500 bg-clip-text text-transparent">
+                            Brasserie Claouey
+                        </h1>
+                        <p class="text-gray-600">Commande en libre-service</p>
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center gap-6">
                     <!-- Indicateur de connexion -->
                     <div id="connection-indicator" class="bg-green-500 text-white px-4 py-2 rounded-full text-sm">
                         <i class="fas fa-wifi mr-2"></i>En ligne
                     </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenu principal -->
+        <main class="pt-28 pb-32 px-4 max-w-7xl mx-auto">
+            <!-- Étape 1: Sélection du mode de service -->
+            <div id="service-mode-screen" class="slide-in-up">
+                <div class="text-center mb-12 bounce-in">
+                    <h2 class="text-4xl md:text-6xl font-bold mb-4">
+                        <span class="bg-gradient-to-r from-blue-700 via-green-700 to-yellow-500 bg-clip-text text-transparent">
+                            Que désirez-vous aujourd'hui ?
+                        </span>
+                    </h2>
+                    <p class="text-gray-600 text-xl md:text-2xl">Commandez en quelques clics et profitez ! 🎉</p>
+                    <p class="text-gray-500 text-lg mt-2">Choisissez votre mode de service</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    <div class="service-card touch-feedback" onclick="setServiceMode('sur_place')">
+                        <div class="text-center">
+                            <div class="bg-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-utensils text-6xl text-blue-600"></i>
+                            </div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">Sur Place</h3>
+                            <p class="text-gray-600 text-lg">Consommez dans notre établissement</p>
+                        </div>
+                    </div>
                     
-                    <!-- Panier -->
-                    <button id="cart-button" 
-                            class="relative bg-white text-blue-600 px-6 py-3 rounded-full font-semibold shadow-lg touch-feedback hover:bg-gray-50 transition-colors"
-                            onclick="openCartModal()">
-                        <i class="fas fa-shopping-cart mr-2"></i>
-                        Panier
-                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center cart-badge hidden">0</span>
+                    <div class="service-card touch-feedback" onclick="setServiceMode('a_emporter')">
+                        <div class="text-center">
+                            <div class="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-shopping-bag text-6xl text-green-600"></i>
+                            </div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">À Emporter</h3>
+                            <p class="text-gray-600 text-lg">Récupérez votre commande</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 2: Sélection de table -->
+            <div id="table-selection-screen" class="hidden slide-in-up">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Choisissez votre table</h2>
+                    <p class="text-lg text-gray-600">Sélectionnez le numéro de votre table</p>
+                </div>
+                
+                <!-- Légende -->
+                <div class="flex justify-center gap-8 mb-8">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-white border-2 border-gray-300 rounded"></div>
+                        <span class="text-sm">Disponible</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-red-200 border-2 border-red-400 rounded"></div>
+                        <span class="text-sm">Occupée</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500 rounded"></div>
+                        <span class="text-sm">Sélectionnée</span>
+                    </div>
+                </div>
+                
+                <div id="table-grid" class="grid grid-cols-5 gap-4 max-w-4xl mx-auto mb-8">
+                    <!-- Tables générées dynamiquement -->
+                </div>
+                
+                <div class="text-center">
+                    <button onclick="goBackToServiceMode()" 
+                            class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
                     </button>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <!-- Content Principal -->
-    <main class="container mx-auto px-6 py-8">
-        <!-- Sélection du mode de service -->
-        <div id="service-mode-screen" class="slide-in-up">
-            <div class="text-center mb-8">
-                <h2 class="text-4xl font-bold text-gray-800 mb-4">Bienvenue !</h2>
-                <p class="text-xl text-gray-600">Comment souhaitez-vous être servi ?</p>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
-                <button onclick="setServiceMode('sur_place')" 
-                        class="group bg-white p-12 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 touch-feedback">
-                    <div class="text-center">
-                        <div class="bg-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-200 transition-colors">
-                            <i class="fas fa-utensils text-6xl text-blue-600"></i>
-                        </div>
-                        <h3 class="text-3xl font-bold text-gray-800 mb-2">Sur Place</h3>
-                        <p class="text-gray-600 text-lg">Consommez dans notre établissement</p>
+            <!-- Étape 3: Sélection des allergènes -->
+            <div id="allergen-selection-screen" class="hidden slide-in-up">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Allergies et intolérances</h2>
+                    <p class="text-lg text-gray-600 mb-6">Sélectionnez vos allergies pour filtrer automatiquement le menu</p>
+                    <div class="bg-yellow-100 border-l-4 border-yellow-400 p-4 max-w-2xl mx-auto rounded">
+                        <p class="text-yellow-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Cette information nous aide à vous proposer des produits adaptés
+                        </p>
                     </div>
-                </button>
+                </div>
                 
-                <button onclick="setServiceMode('a_emporter')" 
-                        class="group bg-white p-12 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 touch-feedback">
-                    <div class="text-center">
-                        <div class="bg-green-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-green-200 transition-colors">
-                            <i class="fas fa-shopping-bag text-6xl text-green-600"></i>
-                        </div>
-                        <h3 class="text-3xl font-bold text-gray-800 mb-2">À Emporter</h3>
-                        <p class="text-gray-600 text-lg">Récupérez votre commande</p>
-                    </div>
-                </button>
+                <div id="allergen-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-8">
+                    <!-- Allergènes générés dynamiquement -->
+                </div>
+                
+                <div class="text-center space-x-4">
+                    <button onclick="skipAllergenSelection()" 
+                            class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                        Aucune allergie
+                    </button>
+                    <button onclick="confirmAllergenSelection()" 
+                            class="action-button text-white px-8 py-4 text-lg font-semibold touch-feedback">
+                        Confirmer et voir le menu
+                    </button>
+                    <button onclick="goBackToServiceMode()" 
+                            class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <!-- Sélection de table -->
-        <div id="table-selection-screen" class="hidden slide-in-up">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">Choisissez votre table</h2>
-                <p class="text-lg text-gray-600">Sélectionnez le numéro de votre table</p>
-            </div>
-            
-            <div id="table-grid" class="grid grid-cols-5 gap-4 max-w-4xl mx-auto">
-                <!-- Tables générées dynamiquement -->
-            </div>
-            
-            <div class="text-center mt-8">
-                <button onclick="goBackToServiceMode()" 
-                        class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
-                    <i class="fas fa-arrow-left mr-2"></i>Retour
-                </button>
-            </div>
-        </div>
+            <!-- Étape 4: Menu principal -->
+            <div id="main-menu-screen" class="hidden">
+                <!-- Hero Section -->
+                <div class="text-center mb-8 bounce-in">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                        <span class="bg-gradient-to-r from-blue-700 via-green-700 to-yellow-500 bg-clip-text text-transparent">
+                            Notre Menu
+                        </span>
+                    </h2>
+                    <p class="text-gray-600 text-lg">Sélectionnez vos plats favoris ! 🍽️</p>
+                </div>
 
-        <!-- Sélection des allergènes -->
-        <div id="allergen-selection-screen" class="hidden slide-in-up">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">Allergies et intolérances</h2>
-                <p class="text-lg text-gray-600 mb-6">Sélectionnez vos allergies pour filtrer automatiquement le menu</p>
-            </div>
-            
-            <div id="allergen-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-8">
-                <!-- Allergènes générés dynamiquement -->
-            </div>
-            
-            <div class="text-center space-x-4">
-                <button onclick="skipAllergenSelection()" 
-                        class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
-                    Aucune allergie
-                </button>
-                <button onclick="confirmAllergenSelection()" 
-                        class="btn-primary text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 touch-feedback">
-                    Confirmer et filtrer le menu
-                </button>
-            </div>
-        </div>
+                <!-- Barre de recherche -->
+                <div class="relative max-w-2xl mx-auto mb-8">
+                    <input type="text" 
+                        id="searchInput"
+                        placeholder="🔍 Rechercher un plat..." 
+                        class="w-full px-6 py-4 pl-14 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none text-lg transition-all duration-300 focus:shadow-lg">
+                    <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
+                </div>
 
-        <!-- Menu principal -->
-        <div id="main-menu-screen" class="hidden">
-            <!-- Barre de catégories -->
-            <div class="mb-8">
-                <div id="categories-nav" class="flex space-x-4 overflow-x-auto pb-4">
+                <!-- Catégories -->
+                <div class="flex flex-wrap gap-4 justify-center mb-8" id="categories-nav">
                     <!-- Catégories générées dynamiquement -->
                 </div>
-            </div>
 
-            <!-- Grille des produits -->
-            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Produits générés dynamiquement -->
-            </div>
-        </div>
-    </main>
+                <!-- Progress Bar -->
+                <div class="max-w-4xl mx-auto mb-8">
+                    <div class="flex justify-between text-sm font-medium text-gray-600 mb-2">
+                        <span>Sélectionnez vos plats</span>
+                        <span>3 articles minimum pour -10% ! 🎁</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
 
-    <!-- Modal Panier -->
-    <div id="cart-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-        <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-screen overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold text-gray-800">Votre Panier</h3>
-                    <button onclick="closeCartModal()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times text-2xl"></i>
-                    </button>
+                <!-- Grille des produits -->
+                <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Produits générés dynamiquement -->
                 </div>
             </div>
-            
-            <div class="max-h-96 overflow-y-auto p-6">
-                <div id="cart-items" class="space-y-4">
-                    <!-- Items du panier -->
+        </main>
+
+        <!-- Panier flottant -->
+        <div class="floating-cart" id="floatingCart" onclick="openCart()">
+            <i class="fas fa-shopping-cart text-3xl"></i>
+            <span class="quantity-badge" id="cartCount" style="display: none;">0</span>
+        </div>
+
+        <!-- Modal Panier -->
+        <div class="modern-modal" id="cartModal">
+            <div class="modal-content">
+                <button onclick="closeCart()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+                
+                <h3 class="text-2xl font-bold mb-6 text-center">
+                    <span class="bg-gradient-to-r from-blue-600 via-green-600 to-yellow-500 bg-clip-text text-transparent">
+                        Votre commande 🛒
+                    </span>
+                </h3>
+                
+                <div id="cartItems" class="space-y-4 mb-6">
                     <div class="text-center text-gray-500 py-8">
                         <i class="fas fa-shopping-cart text-6xl mb-4 opacity-50"></i>
                         <p class="text-xl">Votre panier est vide</p>
                     </div>
                 </div>
-            </div>
-            
-            <div id="cart-footer" class="p-6 border-t border-gray-200 hidden">
-                <div class="flex items-center justify-between mb-6">
-                    <span class="text-xl font-semibold text-gray-800">Total TTC:</span>
-                    <span id="cart-total" class="text-3xl font-bold text-green-600">0.00€</span>
-                </div>
                 
-                <button onclick="proceedToCheckout()" 
-                        class="w-full btn-primary text-white py-4 rounded-xl text-xl font-semibold hover:opacity-90 touch-feedback">
-                    <i class="fas fa-credit-card mr-2"></i>
-                    Procéder au paiement
-                </button>
+                <div id="cart-footer" class="hidden border-t pt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold">Total</span>
+                        <span class="text-2xl font-bold text-green-600" id="cartTotal">0,00€</span>
+                    </div>
+                    
+                    <button onclick="proceedToCheckout()" class="action-button w-full">
+                        Procéder au paiement 🎉
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal Personnalisation Produit -->
-    <div id="product-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-        <div class="bg-white rounded-2xl max-w-3xl w-full mx-4 max-h-screen overflow-y-auto">
+        <!-- Modal Produit -->
+        <div class="modern-modal" id="productModal">
             <!-- Contenu généré dynamiquement -->
         </div>
-    </div>
 
-    <!-- Modal Paiement -->
-    <div id="payment-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-        <div class="bg-white rounded-2xl max-w-lg w-full mx-4">
-            <div class="p-8 text-center">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6">Choisir le mode de paiement</h3>
+        <!-- Modal Paiement -->
+        <div class="modern-modal" id="paymentModal">
+            <div class="modal-content">
+                <h3 class="text-2xl font-bold text-center mb-6">Choisir le mode de paiement</h3>
                 
                 <div class="grid grid-cols-2 gap-6">
                     <button onclick="processCashPayment()" 
@@ -278,458 +671,431 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Écran de confirmation -->
-    <div id="confirmation-screen" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div class="text-center p-8">
-            <div class="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
-                <i class="fas fa-check text-6xl text-green-600"></i>
+        <!-- Écran de confirmation -->
+        <div id="confirmation-screen" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
+            <div class="text-center p-8 bounce-in">
+                <div class="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <i class="fas fa-check text-6xl text-green-600"></i>
+                </div>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Commande confirmée !</h2>
+                <p class="text-xl text-gray-600 mb-2">Numéro de commande :</p>
+                <p id="order-number" class="text-3xl font-bold text-blue-600 mb-8">#BC-000001</p>
+                
+                <div class="space-y-4">
+                    <p class="text-lg text-gray-700">Votre commande est en cours de préparation</p>
+                    <p class="text-gray-600">Temps d'attente estimé : <span id="estimated-time" class="font-semibold">15-20 minutes</span></p>
+                </div>
+                
+                <button onclick="startNewOrder()" 
+                        class="mt-8 action-button text-white px-8 py-4 text-lg font-semibold touch-feedback">
+                    Nouvelle commande
+                </button>
             </div>
-            <h2 class="text-4xl font-bold text-gray-800 mb-4">Commande confirmée !</h2>
-            <p class="text-xl text-gray-600 mb-2">Numéro de commande :</p>
-            <p id="order-number" class="text-2xl font-bold text-blue-600 mb-8">#BC-000001</p>
-            
-            <div class="space-y-4">
-                <p class="text-lg text-gray-700">Votre commande est en cours de préparation</p>
-                <p class="text-gray-600">Temps d'attente estimé : <span id="estimated-time" class="font-semibold">15-20 minutes</span></p>
-            </div>
-            
-            <button onclick="startNewOrder()" 
-                    class="mt-8 btn-primary text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 touch-feedback">
-                Nouvelle commande
-            </button>
         </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
-        <!-- Notifications générées dynamiquement -->
-    </div>
+        <!-- Toast notifications -->
+        <div class="fun-toast" id="toast"></div>
 
-    <script>
-        // ========================================
-        // CONFIGURATION ET CONSTANTES
-        // ========================================
-        
-        // Configuration des allergènes (14 obligatoires UE)
-        const ALLERGENS = {
-            1: { code: 'GLU', name: 'Gluten', icon: '🌾' },
-            2: { code: 'CRU', name: 'Crustacés', icon: '🦐' },
-            3: { code: 'EGG', name: 'Œufs', icon: '🥚' },
-            4: { code: 'FSH', name: 'Poisson', icon: '🐟' },
-            5: { code: 'PNT', name: 'Arachides', icon: '🥜' },
-            6: { code: 'SOY', name: 'Soja', icon: '🌱' },
-            7: { code: 'MLK', name: 'Lait', icon: '🥛' },
-            8: { code: 'NUT', name: 'Fruits à coque', icon: '🌰' },
-            9: { code: 'CEL', name: 'Céleri', icon: '🥬' },
-            10: { code: 'MUS', name: 'Moutarde', icon: '🟡' },
-            11: { code: 'SES', name: 'Graines de sésame', icon: '⚪' },
-            12: { code: 'SUL', name: 'Sulfites', icon: '🧪' },
-            13: { code: 'LUP', name: 'Lupin', icon: '🌿' },
-            14: { code: 'MOL', name: 'Mollusques', icon: '🦪' }
-        };
+        <!-- JavaScript -->
+        <script>
+            // Configuration des allergènes (14 obligatoires UE)
+            const ALLERGENS = {
+                1: { code: 'GLU', name: 'Gluten', icon: '🌾' },
+                2: { code: 'CRU', name: 'Crustacés', icon: '🦐' },
+                3: { code: 'EGG', name: 'Œufs', icon: '🥚' },
+                4: { code: 'FSH', name: 'Poisson', icon: '🐟' },
+                5: { code: 'PNT', name: 'Arachides', icon: '🥜' },
+                6: { code: 'SOY', name: 'Soja', icon: '🌱' },
+                7: { code: 'MLK', name: 'Lait', icon: '🥛' },
+                8: { code: 'NUT', name: 'Fruits à coque', icon: '🌰' },
+                9: { code: 'CEL', name: 'Céleri', icon: '🥬' },
+                10: { code: 'MUS', name: 'Moutarde', icon: '🟡' },
+                11: { code: 'SES', name: 'Graines de sésame', icon: '⚪' },
+                12: { code: 'SUL', name: 'Sulfites', icon: '🧪' },
+                13: { code: 'LUP', name: 'Lupin', icon: '🌿' },
+                14: { code: 'MOL', name: 'Mollusques', icon: '🦪' }
+            };
 
-        // Modes de service
-        const SERVICE_MODES = {
-            DINE_IN: 'sur_place',
-            TAKEAWAY: 'a_emporter'
-        };
+            // Configuration des tables (20 tables)
+            const TABLE_NUMBERS = Array.from({length: 20}, (_, i) => i + 1);
+            const TABLE_STATUS = {}; // Simuler statut des tables
 
-        // Configuration des tables
-        const TABLE_NUMBERS = Array.from({length: 20}, (_, i) => i + 1);
+            // État de l'application
+            const appState = {
+                currentScreen: 'service-mode',
+                serviceMode: null,
+                tableNumber: null,
+                customerAllergens: [],
+                cart: [],
+                currentCategory: 'all',
+                products: [],
+                categories: []
+            };
 
-        // État de l'application
-        const appState = {
-            currentScreen: 'service-mode',
-            serviceMode: null,
-            tableNumber: null,
-            customerAllergens: [],
-            cart: [],
-            currentCategory: null,
-            products: [],
-            categories: []
-        };
+            // Base de données produits simulée
+            const mockProducts = [
+                {
+                    id: 1,
+                    name: 'Burger Classic',
+                    description: 'Pain de bœuf, salade, tomates, cornichons',
+                    price: 12.50,
+                    category: 'burgers',
+                    image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&h=200&fit=crop',
+                    allergens: [1, 3, 7],
+                    emoji: '🍔'
+                },
+                {
+                    id: 2,
+                    name: 'Salade César',
+                    description: 'Salade, poulet grillé, parmesan, croûtons',
+                    price: 9.90,
+                    category: 'salades',
+                    image_url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300&h=200&fit=crop',
+                    allergens: [1, 3, 4, 7],
+                    emoji: '🥗'
+                },
+                {
+                    id: 3,
+                    name: 'Pizza Margherita',
+                    description: 'Sauce tomate, mozzarella, basilic frais',
+                    price: 14.00,
+                    category: 'pizzas',
+                    image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop',
+                    allergens: [1, 7],
+                    emoji: '🍕'
+                },
+                {
+                    id: 4,
+                    name: 'Coca-Cola',
+                    description: 'Boisson gazeuse rafraîchissante',
+                    price: 2.50,
+                    category: 'boissons',
+                    image_url: 'https://images.unsplash.com/photo-1581636625402-29d2d0b5c9c0?w=300&h=200&fit=crop',
+                    allergens: [],
+                    emoji: '🥤'
+                },
+                {
+                    id: 5,
+                    name: 'Bière Pression',
+                    description: 'Bière blonde fraîche du moment',
+                    price: 4.50,
+                    category: 'boissons',
+                    image_url: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=300&h=200&fit=crop',
+                    allergens: [1],
+                    emoji: '🍺'
+                }
+            ];
 
-        // ========================================
-        // INITIALISATION
-        // ========================================
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Initialisation du kiosque...');
-            
-            try {
-                // Générer les éléments UI
+            const mockCategories = [
+                { id: 'all', name: 'Tout voir', icon: '✨', active: true },
+                { id: 'burgers', name: 'Burgers', icon: '🍔', active: true },
+                { id: 'salades', name: 'Salades', icon: '🥗', active: true },
+                { id: 'pizzas', name: 'Pizzas', icon: '🍕', active: true },
+                { id: 'boissons', name: 'Boissons', icon: '🥤', active: true }
+            ];
+
+            // Initialisation
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('🚀 Kiosque initialisé');
+                appState.products = mockProducts;
+                appState.categories = mockCategories;
+                
                 generateAllergenGrid();
                 generateTableGrid();
+                initializeEventListeners();
+            });
+
+            function initializeEventListeners() {
+                // Recherche
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('input', debounce(handleSearch, 300));
+                }
+            }
+
+            // GESTION DES ÉCRANS
+            
+            function showScreen(screenId) {
+                document.querySelectorAll('[id$="-screen"]').forEach(screen => {
+                    screen.classList.add('hidden');
+                });
                 
-                // Charger le catalogue
-                await loadCatalog();
+                const screen = document.getElementById(screenId);
+                if (screen) {
+                    screen.classList.remove('hidden');
+                    screen.classList.add('slide-in-up');
+                    appState.currentScreen = screenId.replace('-screen', '');
+                }
+            }
+
+            // SÉLECTION DU MODE DE SERVICE
+            
+            function setServiceMode(mode) {
+                appState.serviceMode = mode;
                 
-                // Démarrer l'écran de veille si configuré
-                if (isFeatureEnabled && isFeatureEnabled('screensaver')) {
-                    initScreensaver();
+                if (mode === 'sur_place') {
+                    showScreen('table-selection-screen');
+                } else {
+                    showScreen('allergen-selection-screen');
                 }
                 
-                console.log('✅ Kiosque initialisé avec succès');
-            } catch (error) {
-                console.error('❌ Erreur d\'initialisation:', error);
-                showToast('Erreur d\'initialisation', 'error');
+                showToast(`Mode "${mode === 'sur_place' ? 'Sur place' : 'À emporter'}" sélectionné`, 'success');
             }
-        });
 
-        // ========================================
-        // GESTION DES ÉCRANS
-        // ========================================
-        
-        function showScreen(screenId) {
-            // Masquer tous les écrans
-            document.querySelectorAll('[id$="-screen"]').forEach(screen => {
-                screen.classList.add('hidden');
-            });
+            function goBackToServiceMode() {
+                appState.serviceMode = null;
+                appState.tableNumber = null;
+                showScreen('service-mode-screen');
+            }
+
+            // GESTION DES TABLES
             
-            // Afficher l'écran demandé
-            const screen = document.getElementById(screenId);
-            if (screen) {
-                screen.classList.remove('hidden');
-                screen.classList.add('slide-in-up');
-                appState.currentScreen = screenId.replace('-screen', '');
-            }
-        }
-
-        // ========================================
-        // SÉLECTION DU MODE DE SERVICE
-        // ========================================
-        
-        function setServiceMode(mode) {
-            appState.serviceMode = mode;
-            
-            if (mode === SERVICE_MODES.DINE_IN) {
-                showScreen('table-selection-screen');
-            } else {
-                // Mode à emporter, passer aux allergènes
-                showScreen('allergen-selection-screen');
-            }
-        }
-
-        function setTableNumber(tableNum) {
-            appState.tableNumber = tableNum;
-            showScreen('allergen-selection-screen');
-        }
-
-        function goBackToServiceMode() {
-            showScreen('service-mode-screen');
-        }
-
-        // ========================================
-        // GESTION DES ALLERGÈNES
-        // ========================================
-        
-        function generateAllergenGrid() {
-            const grid = document.getElementById('allergen-grid');
-            if (!grid) return;
-            
-            grid.innerHTML = Object.entries(ALLERGENS).map(([id, allergen]) => `
-                <label class="flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-red-300 cursor-pointer transition-colors touch-feedback">
-                    <input type="checkbox" 
-                           class="allergen-checkbox mr-3 w-5 h-5" 
-                           value="${id}"
-                           onchange="toggleAllergen(${id})">
-                    <span class="text-3xl mr-3">${allergen.icon}</span>
-                    <span class="font-semibold">${allergen.name}</span>
-                </label>
-            `).join('');
-        }
-
-        function generateTableGrid() {
-            const grid = document.getElementById('table-grid');
-            if (!grid) return;
-            
-            grid.innerHTML = TABLE_NUMBERS.map(num => `
-                <button onclick="setTableNumber(${num})" 
-                        class="bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 p-8 rounded-xl text-xl font-semibold transition-colors touch-feedback">
-                    Table ${num}
-                </button>
-            `).join('');
-        }
-
-        function toggleAllergen(allergenId) {
-            const index = appState.customerAllergens.indexOf(allergenId);
-            if (index === -1) {
-                appState.customerAllergens.push(allergenId);
-            } else {
-                appState.customerAllergens.splice(index, 1);
-            }
-        }
-
-        function skipAllergenSelection() {
-            appState.customerAllergens = [];
-            proceedToMenu();
-        }
-
-        function confirmAllergenSelection() {
-            if (appState.customerAllergens.length > 0) {
-                showToast(`Filtre appliqué pour ${appState.customerAllergens.length} allergène(s)`, 'success');
-            }
-            proceedToMenu();
-        }
-
-        function proceedToMenu() {
-            showScreen('main-menu-screen');
-            renderCategories();
-            renderProducts();
-        }
-
-        // ========================================
-        // GESTION DU CATALOGUE
-        // ========================================
-        
-        async function loadCatalog() {
-            try {
-                // Simuler le chargement du catalogue
-                // En production, remplacer par un appel API réel
-                appState.categories = [
-                    { id: 1, name: 'Burgers', icon: '🍔', active: true },
-                    { id: 2, name: 'Salades', icon: '🥗', active: true },
-                    { id: 3, name: 'Boissons', icon: '🥤', active: true },
-                    { id: 4, name: 'Desserts', icon: '🍰', active: true },
-                    { id: 5, name: 'Menus', icon: '🍽️', active: true }
-                ];
-
-                appState.products = [
-                    {
-                        id: 1,
-                        name: 'Burger Classic',
-                        description: 'Pain de bœuf, salade, tomates, cornichons',
-                        price: 12.50,
-                        category_id: 1,
-                        image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&h=200&fit=crop',
-                        allergens: [1, 3, 7], // Gluten, Œufs, Lait
-                        options: {
-                            sizes: [
-                                { id: 'normal', name: 'Normal', price: 0 },
-                                { id: 'maxi', name: 'Maxi', price: 2.50 }
-                            ],
-                            extras: [
-                                { id: 'bacon', name: 'Bacon supplémentaire', price: 1.50 },
-                                { id: 'cheese', name: 'Fromage supplémentaire', price: 1.00 }
-                            ]
-                        }
-                    },
-                    {
-                        id: 2,
-                        name: 'Salade César',
-                        description: 'Salade, poulet grillé, parmesan, croûtons',
-                        price: 9.90,
-                        category_id: 2,
-                        image_url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300&h=200&fit=crop',
-                        allergens: [1, 3, 4, 7], // Gluten, Œufs, Poisson, Lait
-                        options: {
-                            extras: [
-                                { id: 'chicken_extra', name: 'Double portion poulet', price: 3.00 }
-                            ]
-                        }
-                    },
-                    {
-                        id: 3,
-                        name: 'Coca-Cola',
-                        description: 'Boisson gazeuse',
-                        price: 2.50,
-                        category_id: 3,
-                        image_url: 'https://images.unsplash.com/photo-1581636625402-29d2d0b5c9c0?w=300&h=200&fit=crop',
-                        allergens: [],
-                        options: {
-                            sizes: [
-                                { id: 'small', name: 'Petit (33cl)', price: 0 },
-                                { id: 'medium', name: 'Moyen (50cl)', price: 0.50 },
-                                { id: 'large', name: 'Grand (75cl)', price: 1.00 }
-                            ]
-                        }
-                    }
-                ];
-
-                appState.currentCategory = appState.categories[0]?.id || null;
+            function generateTableGrid() {
+                const grid = document.getElementById('table-grid');
+                if (!grid) return;
                 
-            } catch (error) {
-                console.error('Erreur chargement catalogue:', error);
-                showToast('Erreur de chargement du menu', 'error');
-            }
-        }
-
-        function renderCategories() {
-            const nav = document.getElementById('categories-nav');
-            if (!nav || !appState.categories.length) return;
-            
-            nav.innerHTML = appState.categories.map(category => `
-                <button onclick="selectCategory(${category.id})" 
-                        class="category-btn flex-shrink-0 px-6 py-3 rounded-full text-lg font-semibold transition-colors touch-feedback ${
-                            appState.currentCategory === category.id 
-                                ? 'bg-blue-500 text-white' 
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }">
-                    <span class="mr-2">${category.icon}</span>
-                    ${category.name}
-                </button>
-            `).join('');
-        }
-
-        function selectCategory(categoryId) {
-            appState.currentCategory = categoryId;
-            renderCategories();
-            renderProducts();
-        }
-
-        function renderProducts() {
-            const grid = document.getElementById('products-grid');
-            if (!grid) return;
-            
-            const filteredProducts = appState.products.filter(product => 
-                product.category_id === appState.currentCategory &&
-                isProductSafeForAllergens(product)
-            );
-            
-            if (filteredProducts.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
-                        <p class="text-xl text-gray-500">Aucun produit disponible dans cette catégorie</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            grid.innerHTML = filteredProducts.map(product => `
-                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer touch-feedback"
-                     onclick="openProductModal(${product.id})">
-                    <div class="relative">
-                        <img src="${product.image_url}" 
-                             alt="${product.name}" 
-                             class="w-full h-48 object-cover">
-                        ${renderAllergenBadges(product.allergens)}
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-lg font-bold text-gray-800 mb-2">${product.name}</h3>
-                        <p class="text-gray-600 text-sm mb-4">${product.description}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-2xl font-bold text-green-600">${product.price.toFixed(2)}€</span>
-                            <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                                <i class="fas fa-plus mr-1"></i>Ajouter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function isProductSafeForAllergens(product) {
-            if (appState.customerAllergens.length === 0) return true;
-            
-            return !product.allergens.some(allergenId => 
-                appState.customerAllergens.includes(allergenId)
-            );
-        }
-
-        function renderAllergenBadges(allergens) {
-            if (!allergens || allergens.length === 0) return '';
-            
-            return `
-                <div class="absolute top-2 left-2">
-                    <div class="flex flex-wrap gap-1">
-                        ${allergens.map(allergenId => {
-                            const allergen = ALLERGENS[allergenId];
-                            return allergen ? `
-                                <span class="allergen-badge bg-red-100 text-red-800" title="${allergen.name}">
-                                    ${allergen.icon} ${allergen.code}
-                                </span>
-                            ` : '';
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // ========================================
-        // MODAL PRODUIT ET PERSONNALISATION
-        // ========================================
-        
-        function openProductModal(productId) {
-            const product = appState.products.find(p => p.id === productId);
-            if (!product) return;
-            
-            const modal = document.getElementById('product-modal');
-            modal.innerHTML = generateProductModalContent(product);
-            modal.classList.remove('hidden');
-        }
-
-        function generateProductModalContent(product) {
-            return `
-                <div class="bg-white rounded-2xl max-w-3xl w-full mx-4 max-h-screen overflow-y-auto">
-                    <div class="relative">
-                        <img src="${product.image_url}" alt="${product.name}" class="w-full h-64 object-cover">
-                        <button onclick="closeProductModal()" 
-                                class="absolute top-4 right-4 bg-white text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                // Simuler quelques tables occupées
+                TABLE_STATUS[3] = 'occupied';
+                TABLE_STATUS[7] = 'occupied';
+                TABLE_STATUS[12] = 'occupied';
+                
+                grid.innerHTML = TABLE_NUMBERS.map(num => {
+                    const isOccupied = TABLE_STATUS[num] === 'occupied';
+                    const isSelected = appState.tableNumber === num;
                     
-                    <div class="p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">${product.name}</h2>
-                        <p class="text-gray-600 mb-4">${product.description}</p>
-                        <div class="text-3xl font-bold text-green-600 mb-6">${product.price.toFixed(2)}€</div>
-                        
-                        ${product.options && product.options.sizes ? `
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Choisir la taille</h3>
-                                <div class="grid grid-cols-3 gap-2">
-                                    ${product.options.sizes.map((size, index) => `
-                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors">
-                                            <input type="radio" name="size" value="${size.id}" class="mr-2" ${index === 0 ? 'checked' : ''}>
-                                            <div>
-                                                <div class="font-semibold">${size.name}</div>
-                                                ${size.price > 0 ? `<div class="text-sm text-green-600">+${size.price.toFixed(2)}€</div>` : ''}
-                                            </div>
-                                        </label>
-                                    `).join('')}
+                    return `
+                        <div class="table-button ${isOccupied ? 'occupied' : ''} ${isSelected ? 'selected' : ''} touch-feedback"
+                            onclick="${isOccupied ? '' : `setTableNumber(${num})`}">
+                            <div class="text-center">
+                                <div class="text-2xl mb-2">${isOccupied ? '❌' : isSelected ? '✅' : '🪑'}</div>
+                                <div class="text-xl font-bold">Table ${num}</div>
+                                <div class="text-sm text-gray-500">
+                                    ${isOccupied ? 'Occupée' : 'Disponible'}
                                 </div>
                             </div>
-                        ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function setTableNumber(tableNum) {
+                if (TABLE_STATUS[tableNum] === 'occupied') {
+                    showToast('Cette table est occupée', 'error');
+                    return;
+                }
+                
+                appState.tableNumber = tableNum;
+                generateTableGrid(); // Refresh pour afficher la sélection
+                
+                setTimeout(() => {
+                    showScreen('allergen-selection-screen');
+                    showToast(`Table ${tableNum} sélectionnée`, 'success');
+                }, 500);
+            }
+
+            // GESTION DES ALLERGÈNES
+            
+            function generateAllergenGrid() {
+                const grid = document.getElementById('allergen-grid');
+                if (!grid) return;
+                
+                grid.innerHTML = Object.entries(ALLERGENS).map(([id, allergen]) => `
+                    <label class="allergen-card touch-feedback" onclick="toggleAllergen(${id})">
+                        <input type="checkbox" 
+                            class="allergen-checkbox hidden" 
+                            value="${id}"
+                            id="allergen-${id}">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">${allergen.icon}</div>
+                            <div class="font-semibold">${allergen.name}</div>
+                            <div class="text-xs text-gray-500">${allergen.code}</div>
+                        </div>
+                    </label>
+                `).join('');
+            }
+
+            function toggleAllergen(allergenId) {
+                const checkbox = document.getElementById(`allergen-${allergenId}`);
+                const card = checkbox.closest('.allergen-card');
+                
+                if (appState.customerAllergens.includes(allergenId)) {
+                    // Retirer l'allergène
+                    appState.customerAllergens = appState.customerAllergens.filter(id => id !== allergenId);
+                    card.classList.remove('selected');
+                    checkbox.checked = false;
+                } else {
+                    // Ajouter l'allergène
+                    appState.customerAllergens.push(allergenId);
+                    card.classList.add('selected');
+                    checkbox.checked = true;
+                    card.querySelector('.text-4xl').textContent = '✅';
+                }
+            }
+
+            function skipAllergenSelection() {
+                appState.customerAllergens = [];
+                proceedToMenu();
+            }
+
+            function confirmAllergenSelection() {
+                if (appState.customerAllergens.length > 0) {
+                    showToast(`Filtre appliqué pour ${appState.customerAllergens.length} allergène(s)`, 'success');
+                }
+                proceedToMenu();
+            }
+
+            function proceedToMenu() {
+                showScreen('main-menu-screen');
+                renderCategories();
+                renderProducts();
+            }
+
+            // GESTION DU MENU
+            
+            function renderCategories() {
+                const nav = document.getElementById('categories-nav');
+                if (!nav) return;
+                
+                nav.innerHTML = appState.categories.map(category => `
+                    <button onclick="selectCategory('${category.id}')" 
+                            class="category-pill ${appState.currentCategory === category.id ? 'active' : ''} touch-feedback">
+                        <span class="mr-2">${category.icon}</span>
+                        ${category.name}
+                    </button>
+                `).join('');
+            }
+
+            function selectCategory(categoryId) {
+                appState.currentCategory = categoryId;
+                renderCategories();
+                renderProducts();
+            }
+
+            function renderProducts() {
+                const grid = document.getElementById('products-grid');
+                if (!grid) return;
+                
+                let filteredProducts = appState.products;
+                
+                // Filtrer par catégorie
+                if (appState.currentCategory !== 'all') {
+                    filteredProducts = filteredProducts.filter(product => 
+                        product.category === appState.currentCategory
+                    );
+                }
+                
+                // Filtrer par allergènes
+                if (appState.customerAllergens.length > 0) {
+                    filteredProducts = filteredProducts.filter(product => 
+                        !product.allergens.some(allergenId => 
+                            appState.customerAllergens.includes(allergenId)
+                        )
+                    );
+                }
+                
+                if (filteredProducts.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
+                            <p class="text-xl text-gray-500">Aucun produit disponible</p>
+                            ${appState.customerAllergens.length > 0 ? 
+                            '<p class="text-gray-400">Essayez de modifier vos restrictions alimentaires</p>' : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                grid.innerHTML = filteredProducts.map(product => `
+                    <div class="product-card touch-feedback" onclick="showProductModal(${product.id})">
+                        <div class="relative overflow-hidden">
+                            <img src="${product.image_url}" alt="${product.name}" class="w-full h-48 object-cover">
+                            ${renderAllergenBadges(product.allergens)}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-xl font-bold mb-2">${product.name}</h3>
+                            <p class="text-gray-600 mb-4">${product.description}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-green-600">${product.price.toFixed(2)}€</span>
+                                <button class="bg-gradient-to-r from-blue-600 via-green-600 to-yellow-500 text-white p-3 rounded-full hover:shadow-lg transition-all duration-300 touch-feedback">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function renderAllergenBadges(allergens) {
+                if (!allergens || allergens.length === 0) return '';
+                
+                return `
+                    <div class="absolute top-2 left-2">
+                        <div class="flex flex-wrap gap-1">
+                            ${allergens.map(allergenId => {
+                                const allergen = ALLERGENS[allergenId];
+                                return allergen ? `
+                                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded" 
+                                        title="${allergen.name}">
+                                        ${allergen.icon}
+                                    </span>
+                                ` : '';
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function showProductModal(productId) {
+                const product = appState.products.find(p => p.id === productId);
+                if (!product) return;
+                
+                const modal = document.getElementById('productModal');
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <button onclick="closeProductModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
                         
-                        ${product.options && product.options.extras ? `
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Suppléments & Options</h3>
-                                <div class="space-y-2">
-                                    ${product.options.extras.map(extra => `
-                                        <label class="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                                            <div class="flex items-center">
-                                                <input type="checkbox" name="extras" value="${extra.id}" class="mr-3">
-                                                <span>${extra.name}</span>
-                                            </div>
-                                            <span class="text-green-600 font-semibold">+${extra.price.toFixed(2)}€</span>
-                                        </label>
+                        <div class="text-center mb-6">
+                            <div class="text-6xl mb-4">${product.emoji}</div>
+                            <h2 class="text-3xl font-bold mb-2">${product.name}</h2>
+                            <p class="text-gray-600 mb-4">${product.description}</p>
+                            <div class="text-3xl font-bold text-green-600 mb-6">${product.price.toFixed(2)}€</div>
+                        </div>
+                        
+                        ${product.allergens.length > 0 ? `
+                            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
+                                <p class="font-semibold text-yellow-800 mb-2">Allergènes présents :</p>
+                                <div class="flex flex-wrap gap-2">
+                                    ${product.allergens.map(id => `
+                                        <span class="bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-sm">
+                                            ${ALLERGENS[id].icon} ${ALLERGENS[id].name}
+                                        </span>
                                     `).join('')}
                                 </div>
                             </div>
                         ` : ''}
                         
                         <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Quantité</h3>
-                            <div class="flex items-center space-x-4">
-                                <button onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center">
+                            <h3 class="text-lg font-semibold mb-3">Quantité</h3>
+                            <div class="flex items-center justify-center space-x-4">
+                                <button onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-12 h-12 rounded-full flex items-center justify-center">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <span id="quantity" class="text-2xl font-bold">1</span>
-                                <button onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center">
+                                <button onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 w-12 h-12 rounded-full flex items-center justify-center">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
                         </div>
                         
                         <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Instructions spéciales</h3>
+                            <h3 class="text-lg font-semibold mb-3">Instructions spéciales</h3>
                             <textarea id="special-instructions" 
-                                      class="w-full p-3 border border-gray-300 rounded-lg resize-none" 
-                                      rows="3" 
-                                      placeholder="Ex: Bien cuit, sans sel, etc..."></textarea>
+                                    class="w-full p-3 border border-gray-300 rounded-lg resize-none" 
+                                    rows="3" 
+                                    placeholder="Ex: Sans oignons, bien cuit, etc..."></textarea>
                         </div>
                         
                         <div class="flex space-x-4">
@@ -738,122 +1104,118 @@
                                 Annuler
                             </button>
                             <button onclick="addToCart(${product.id})" 
-                                    class="flex-1 btn-primary text-white py-4 rounded-xl text-lg font-semibold hover:opacity-90 touch-feedback">
+                                    class="flex-1 action-button text-white py-4 text-lg font-semibold touch-feedback">
                                 Ajouter au panier
                             </button>
                         </div>
                     </div>
-                </div>
-            `;
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.add('hidden');
-        }
-
-        // ========================================
-        // GESTION DU PANIER
-        // ========================================
-        
-        function addToCart(productId) {
-            const product = appState.products.find(p => p.id === productId);
-            if (!product) return;
-
-            const quantity = parseInt(document.getElementById('quantity').textContent) || 1;
-            const specialInstructions = document.getElementById('special-instructions').value;
-
-            // Récupérer les options sélectionnées
-            const selectedSize = document.querySelector('input[name="size"]:checked');
-            const selectedExtras = Array.from(document.querySelectorAll('input[name="extras"]:checked'));
-
-            let totalPrice = product.price * quantity;
-            const options = [];
-
-            // Ajouter le prix de la taille
-            if (selectedSize) {
-                const size = product.options.sizes.find(s => s.id === selectedSize.value);
-                if (size && size.price > 0) {
-                    totalPrice += size.price * quantity;
-                    options.push({ type: 'size', name: size.name, price: size.price });
-                }
-            }
-
-            // Ajouter le prix des extras
-            selectedExtras.forEach(extraInput => {
-                const extra = product.options.extras.find(e => e.id === extraInput.value);
-                if (extra) {
-                    totalPrice += extra.price * quantity;
-                    options.push({ type: 'extra', name: extra.name, price: extra.price });
-                }
-            });
-
-            const cartItem = {
-                id: Date.now(), // ID unique pour l'item du panier
-                product_id: product.id,
-                product_name: product.name,
-                quantity: quantity,
-                unit_price: product.price,
-                total_price: totalPrice,
-                options: options,
-                special_instructions: specialInstructions,
-                image_url: product.image_url
-            };
-
-            appState.cart.push(cartItem);
-            updateCartUI();
-            closeProductModal();
-            showToast(`${product.name} ajouté au panier`, 'success');
-        }
-
-        function updateCartUI() {
-            const cartCount = document.getElementById('cart-count');
-            const cartButton = document.getElementById('cart-button');
-            
-            if (appState.cart.length > 0) {
-                cartCount.textContent = appState.cart.length;
-                cartCount.classList.remove('hidden');
-            } else {
-                cartCount.classList.add('hidden');
-            }
-        }
-
-        function openCartModal() {
-            const modal = document.getElementById('cart-modal');
-            renderCartItems();
-            modal.classList.remove('hidden');
-        }
-
-        function closeCartModal() {
-            document.getElementById('cart-modal').classList.add('hidden');
-        }
-
-        function renderCartItems() {
-            const container = document.getElementById('cart-items');
-            const footer = document.getElementById('cart-footer');
-            
-            if (appState.cart.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center text-gray-500 py-8">
-                        <i class="fas fa-shopping-cart text-6xl mb-4 opacity-50"></i>
-                        <p class="text-xl">Votre panier est vide</p>
-                    </div>
                 `;
-                footer.classList.add('hidden');
-                return;
+                modal.classList.add('active');
             }
 
-            let total = 0;
-            container.innerHTML = appState.cart.map(item => {
-                total += item.total_price;
-                return `
+            function closeProductModal() {
+                document.getElementById('productModal').classList.remove('active');
+            }
+
+            // GESTION DU PANIER
+            
+            function addToCart(productId) {
+                const product = appState.products.find(p => p.id === productId);
+                if (!product) return;
+
+                const quantity = parseInt(document.getElementById('quantity').textContent) || 1;
+                const specialInstructions = document.getElementById('special-instructions').value;
+
+                const cartItem = {
+                    id: Date.now(),
+                    product_id: product.id,
+                    product_name: product.name,
+                    product_emoji: product.emoji,
+                    quantity: quantity,
+                    unit_price: product.price,
+                    total_price: product.price * quantity,
+                    special_instructions: specialInstructions,
+                    image_url: product.image_url
+                };
+
+                appState.cart.push(cartItem);
+                updateCartUI();
+                closeProductModal();
+                showToast(`${product.emoji} ${product.name} ajouté au panier`, 'success');
+                
+                // Animation confetti si c'est le premier ajout
+                if (appState.cart.length === 1) {
+                    createConfetti();
+                }
+            }
+
+            function updateCartUI() {
+                const count = appState.cart.reduce((sum, item) => sum + item.quantity, 0);
+                const cartCount = document.getElementById('cartCount');
+                const cart = document.getElementById('floatingCart');
+                
+                if (count > 0) {
+                    cartCount.textContent = count;
+                    cartCount.style.display = 'block';
+                    cart.classList.add('has-items');
+                } else {
+                    cartCount.style.display = 'none';
+                    cart.classList.remove('has-items');
+                }
+                
+                updateProgressBar();
+            }
+
+            function updateProgressBar() {
+                const count = appState.cart.reduce((sum, item) => sum + item.quantity, 0);
+                const progress = Math.min((count / 3) * 100, 100);
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                }
+                
+                if (count >= 3 && !appState.promoApplied) {
+                    showToast('🎉 Félicitations ! -10% appliqué !', 'success');
+                    createConfetti();
+                    appState.promoApplied = true;
+                }
+            }
+
+            function openCart() {
+                const modal = document.getElementById('cartModal');
+                renderCartItems();
+                modal.classList.add('active');
+            }
+
+            function closeCart() {
+                document.getElementById('cartModal').classList.remove('active');
+            }
+
+            function renderCartItems() {
+                const container = document.getElementById('cartItems');
+                const footer = document.getElementById('cart-footer');
+                
+                if (appState.cart.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-shopping-cart text-6xl mb-4 opacity-50"></i>
+                            <p class="text-xl">Votre panier est vide</p>
+                        </div>
+                    `;
+                    footer.classList.add('hidden');
+                    return;
+                }
+
+                let total = appState.cart.reduce((sum, item) => sum + item.total_price, 0);
+                const discount = appState.cart.length >= 3 ? 0.1 : 0;
+                const finalTotal = total * (1 - discount);
+                
+                container.innerHTML = appState.cart.map(item => `
                     <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
-                        <img src="${item.image_url}" alt="${item.product_name}" class="w-16 h-16 object-cover rounded">
+                        <div class="text-3xl">${item.product_emoji}</div>
                         <div class="flex-1">
                             <h4 class="font-semibold text-gray-800">${item.product_name}</h4>
                             <p class="text-sm text-gray-600">Quantité: ${item.quantity}</p>
-                            ${item.options.map(opt => `
-                                <p class="text-xs text-gray-500">+ ${opt.name} (+${opt.price.toFixed(2)}€)</p>
-                            `).join('')}
                             ${item.special_instructions ? `
                                 <p class="text-xs text-blue-600">Note: ${item.special_instructions}</p>
                             ` : ''}
@@ -865,207 +1227,216 @@
                             </button>
                         </div>
                     </div>
-                `;
-            }).join('');
-
-            document.getElementById('cart-total').textContent = `${total.toFixed(2)}€`;
-            footer.classList.remove('hidden');
-        }
-
-        function removeFromCart(itemId) {
-            appState.cart = appState.cart.filter(item => item.id !== itemId);
-            updateCartUI();
-            renderCartItems();
-            showToast('Article supprimé du panier', 'info');
-        }
-
-        // ========================================
-        // PROCESSUS DE PAIEMENT
-        // ========================================
-        
-        function proceedToCheckout() {
-            if (appState.cart.length === 0) {
-                showToast('Votre panier est vide', 'warning');
-                return;
-            }
-
-            closeCartModal();
-            document.getElementById('payment-modal').classList.remove('hidden');
-        }
-
-        async function processCashPayment() {
-            try {
-                const order = await createOrder('cash');
-                if (order.success) {
-                    showConfirmationScreen(order);
+                `).join('');
+                
+                if (discount > 0) {
+                    container.innerHTML += `
+                        <div class="text-center text-green-600 font-semibold p-4">
+                            🎉 Réduction de 10% appliquée !
+                        </div>
+                    `;
                 }
-            } catch (error) {
-                console.error('Erreur paiement espèces:', error);
-                showToast('Erreur lors du paiement', 'error');
-            }
-        }
 
-        async function processCardPayment() {
-            try {
-                const order = await createOrder('card');
-                if (order.success) {
-                    showConfirmationScreen(order);
+                document.getElementById('cartTotal').textContent = `${finalTotal.toFixed(2)}€`;
+                footer.classList.remove('hidden');
+            }
+
+            function removeFromCart(itemId) {
+                appState.cart = appState.cart.filter(item => item.id !== itemId);
+                updateCartUI();
+                renderCartItems();
+                showToast('Article supprimé du panier', 'info');
+            }
+
+            // PROCESSUS DE PAIEMENT
+            
+            function proceedToCheckout() {
+                if (appState.cart.length === 0) {
+                    showToast('Votre panier est vide', 'error');
+                    return;
                 }
-            } catch (error) {
-                console.error('Erreur paiement carte:', error);
-                showToast('Erreur lors du paiement', 'error');
+
+                closeCart();
+                document.getElementById('paymentModal').classList.add('active');
             }
-        }
 
-        async function createOrder(paymentMethod) {
-            const orderData = {
-                items: appState.cart,
-                customer_name: `Client ${appState.serviceMode === 'sur_place' ? `Table ${appState.tableNumber}` : 'À emporter'}`,
-                service_mode: appState.serviceMode,
-                table_number: appState.tableNumber,
-                order_type: 'kiosk',
-                payment_method: paymentMethod,
-                customer_allergens: appState.customerAllergens
-            };
+            function processCashPayment() {
+                processPayment('cash');
+            }
 
-            // En production, remplacer par un appel API réel
-            return new Promise((resolve) => {
+            function processCardPayment() {
+                processPayment('card');
+            }
+
+            async function processPayment(method) {
+                document.getElementById('paymentModal').classList.remove('active');
+                
+                showToast('Traitement du paiement en cours...', 'info');
+                
+                // Simuler le traitement
                 setTimeout(() => {
-                    resolve({
-                        success: true,
-                        order_number: `BC-${String(Date.now()).slice(-6)}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                        estimated_time: '15-20 minutes'
-                    });
-                }, 1000);
-            });
-        }
-
-        function showConfirmationScreen(order) {
-            document.getElementById('payment-modal').classList.add('hidden');
-            document.getElementById('order-number').textContent = `#${order.order_number}`;
-            document.getElementById('estimated-time').textContent = order.estimated_time;
-            document.getElementById('confirmation-screen').classList.remove('hidden');
-        }
-
-        function startNewOrder() {
-            // Réinitialiser l'état
-            appState.cart = [];
-            appState.serviceMode = null;
-            appState.tableNumber = null;
-            appState.customerAllergens = [];
-            
-            // Masquer l'écran de confirmation
-            document.getElementById('confirmation-screen').classList.add('hidden');
-            
-            // Réinitialiser les checkboxes allergènes
-            document.querySelectorAll('.allergen-checkbox').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-            
-            // Retourner à l'écran de sélection du service
-            showScreen('service-mode-screen');
-            updateCartUI();
-        }
-
-        // ========================================
-        // UTILITAIRES
-        // ========================================
-        
-        function increaseQuantity() {
-            const quantityEl = document.getElementById('quantity');
-            const current = parseInt(quantityEl.textContent);
-            if (current < 20) { // Limite max
-                quantityEl.textContent = current + 1;
+                    showConfirmationScreen();
+                }, 2000);
             }
-        }
 
-        function decreaseQuantity() {
-            const quantityEl = document.getElementById('quantity');
-            const current = parseInt(quantityEl.textContent);
-            if (current > 1) {
-                quantityEl.textContent = current - 1;
+            function showConfirmationScreen() {
+                const orderNumber = `BC-${Date.now().toString().slice(-6)}`;
+                document.getElementById('order-number').textContent = `#${orderNumber}`;
+                document.getElementById('confirmation-screen').classList.remove('hidden');
+                
+                createConfetti();
+                showToast('🎉 Commande confirmée avec succès !', 'success');
             }
-        }
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
+            function startNewOrder() {
+                // Réinitialiser l'état
+                appState.cart = [];
+                appState.serviceMode = null;
+                appState.tableNumber = null;
+                appState.customerAllergens = [];
+                appState.promoApplied = false;
+                
+                // Masquer l'écran de confirmation
+                document.getElementById('confirmation-screen').classList.add('hidden');
+                
+                // Réinitialiser les checkboxes allergènes
+                document.querySelectorAll('.allergen-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Retourner à l'écran de sélection du service
+                showScreen('service-mode-screen');
+                updateCartUI();
+            }
+
+            // UTILITAIRES
             
-            const colors = {
-                success: 'bg-green-500',
-                error: 'bg-red-500',
-                warning: 'bg-yellow-500',
-                info: 'bg-blue-500'
+            function increaseQuantity() {
+                const quantityEl = document.getElementById('quantity');
+                const current = parseInt(quantityEl.textContent);
+                if (current < 20) {
+                    quantityEl.textContent = current + 1;
+                }
+            }
+
+            function decreaseQuantity() {
+                const quantityEl = document.getElementById('quantity');
+                const current = parseInt(quantityEl.textContent);
+                if (current > 1) {
+                    quantityEl.textContent = current - 1;
+                }
+            }
+
+            function handleSearch(e) {
+                const query = e.target.value.toLowerCase();
+                
+                if (query === '') {
+                    renderProducts();
+                    return;
+                }
+                
+                const filteredProducts = appState.products.filter(product => 
+                    product.name.toLowerCase().includes(query) ||
+                    product.description.toLowerCase().includes(query)
+                );
+                
+                const grid = document.getElementById('products-grid');
+                if (filteredProducts.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fas fa-search text-6xl text-gray-400 mb-4"></i>
+                            <p class="text-xl text-gray-500">Aucun résultat pour "${query}"</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Utiliser la même logique de rendu que renderProducts
+                grid.innerHTML = filteredProducts.map(product => `
+                    <div class="product-card touch-feedback" onclick="showProductModal(${product.id})">
+                        <div class="relative overflow-hidden">
+                            <img src="${product.image_url}" alt="${product.name}" class="w-full h-48 object-cover">
+                            ${renderAllergenBadges(product.allergens)}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-xl font-bold mb-2">${product.name}</h3>
+                            <p class="text-gray-600 mb-4">${product.description}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-green-600">${product.price.toFixed(2)}€</span>
+                                <button class="bg-gradient-to-r from-blue-600 via-green-600 to-yellow-500 text-white p-3 rounded-full hover:shadow-lg transition-all duration-300 touch-feedback">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `fun-toast ${type} show`;
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            function createConfetti() {
+                const colors = ['#1e40af', '#16a34a', '#eab308', '#f59e0b', '#22c55e'];
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.zIndex = '3000';
+                    confetti.style.animation = 'confetti-fall 3s ease-in-out';
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 6000);
+                }
+            }
+
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Gestion de la connectivité
+            window.addEventListener('online', () => {
+                document.getElementById('connection-indicator').innerHTML = '<i class="fas fa-wifi mr-2"></i>En ligne';
+                document.getElementById('connection-indicator').className = 'bg-green-500 text-white px-4 py-2 rounded-full text-sm';
+            });
+
+            window.addEventListener('offline', () => {
+                document.getElementById('connection-indicator').innerHTML = '<i class="fas fa-wifi-slash mr-2"></i>Hors ligne';
+                document.getElementById('connection-indicator').className = 'bg-red-500 text-white px-4 py-2 rounded-full text-sm';
+            });
+
+            // API pour intégration
+            window.kioskApp = {
+                setServiceMode,
+                setTableNumber,
+                toggleAllergen,
+                showProductModal,
+                addToCart,
+                showToast,
+                getState: () => appState
             };
-            
-            const icons = {
-                success: 'fa-check-circle',
-                error: 'fa-exclamation-circle',
-                warning: 'fa-exclamation-triangle',
-                info: 'fa-info-circle'
-            };
-            
-            toast.className = `${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 slide-in-up`;
-            toast.innerHTML = `
-                <i class="fas ${icons[type]}"></i>
-                <span>${message}</span>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-        }
 
-        function initScreensaver() {
-            let inactivityTimer;
-            const SCREENSAVER_DELAY = 5 * 60 * 1000; // 5 minutes
-            
-            function resetTimer() {
-                clearTimeout(inactivityTimer);
-                inactivityTimer = setTimeout(() => {
-                    // Activer l'écran de veille
-                    console.log('Activation écran de veille');
-                }, SCREENSAVER_DELAY);
-            }
-            
-            // Écouter les événements d'activité
-            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.addEventListener(event, resetTimer, true);
-            });
-            
-            resetTimer();
-        }
-
-        // Gestion de la connectivité
-        window.addEventListener('online', () => {
-            document.getElementById('connection-indicator').innerHTML = '<i class="fas fa-wifi mr-2"></i>En ligne';
-            document.getElementById('connection-indicator').className = 'bg-green-500 text-white px-4 py-2 rounded-full text-sm';
-        });
-
-        window.addEventListener('offline', () => {
-            document.getElementById('connection-indicator').innerHTML = '<i class="fas fa-wifi-slash mr-2"></i>Hors ligne';
-            document.getElementById('connection-indicator').className = 'bg-red-500 text-white px-4 py-2 rounded-full text-sm';
-        });
-
-        // Gestion des erreurs globales
-        window.addEventListener('error', (event) => {
-            console.error('Erreur globale:', event.error);
-            if (CONFIG && CONFIG.DEBUG && CONFIG.DEBUG.SHOW_ERRORS) {
-                showToast('Une erreur est survenue', 'error');
-            }
-        });
-
-        // Export des fonctions pour les tests
-        window.kioskApp = {
-            setServiceMode,
-            setTableNumber,
-            toggleAllergen,
-            openProductModal,
-            addToCart,
-            showToast
-        };
-    </script>
-</body>
+            console.log('✅ Kiosque prêt ! API disponible via window.kioskApp');
+        </script>
+    </body>
 </html>
