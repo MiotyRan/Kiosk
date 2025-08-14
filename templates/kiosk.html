@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>🹍 Brasserie Claouey - Commandez vos repas!</title>
+        <title>🍹 Brasserie Claouey - Commandez vos repas!</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <style>
@@ -101,13 +101,13 @@
                 z-index: 1000;
             }
 
-            /* Barre de progression des étapes */
+            /* Barre de progresion des étapes */
             .progress-steps {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 gap: 2rem;
-                margin: 1rem 0 2rem 0;
+                margin: 0.5rem 0 1rem 0;
                 padding: 1rem;
                 background: rgba(255, 255, 255, 0.9);
                 border-radius: 50px;
@@ -133,8 +133,8 @@
                 font-size: 1.2rem;
                 transition: all 0.3s ease;
                 border: 3px solid #e5e7eb;
-                background: white;
                 color: #9ca3af;
+                background: white;
             }
 
             .step-circle.active {
@@ -147,7 +147,7 @@
 
             .step-circle.completed {
                 background: var(--success);
-                color: white;
+                color: wheat;
                 border-color: transparent;
             }
 
@@ -172,7 +172,7 @@
                 border-radius: 2px;
                 transition: background 0.3s ease;
             }
-
+            
             .step-connector.active {
                 background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
             }
@@ -326,6 +326,14 @@
             .product-card.selected {
                 border: 3px solid var(--primary);
                 box-shadow: 0 0 30px rgba(30, 64, 175, 0.4);
+            }
+
+            .product-card button {
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                min-width: 50px;
+                min-height: 50px;
             }
 
             /* Floating cart */
@@ -579,7 +587,7 @@
         </header>
 
         <!-- Contenu principal -->
-        <main class="pt-40 pb-32 px-4 max-w-7xl mx-auto">
+        <main class="pt-60 pb-32 px-4 max-w-7xl mx-auto">
             <!-- Étape 1: Sélection du mode de service -->
             <div id="service-mode-screen" class="slide-in-up">
                 <div class="text-center mb-12 bounce-in">
@@ -618,7 +626,11 @@
             <!-- Étape 2: Sélection de table -->
             <div id="table-selection-screen" class="hidden slide-in-up">
                 <div class="text-center mb-8">
-                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Choisissez votre table</h2>
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">
+                        <span class="bg-gradient-to-r from-blue-700 via-green-700 to-yellow-500 bg-clip-text text-transparent">
+                            Choisissez votre table
+                        </span>
+                    </h2>
                     <p class="text-lg text-gray-600">Sélectionnez le numéro de votre table</p>
                 </div>
                 
@@ -653,7 +665,11 @@
             <!-- Étape 3: Sélection des allergènes -->
             <div id="allergen-selection-screen" class="hidden slide-in-up">
                 <div class="text-center mb-8">
-                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Allergies et intolérances</h2>
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">
+                        <span class="bg-gradient-to-r from-blue-700 via-green-700 to-yellow-500 bg-clip-text text-transparent">
+                            Allergies et intolérances
+                        </span>
+                    </h2>
                     <p class="text-lg text-gray-600 mb-6">Sélectionnez vos allergies pour filtrer automatiquement le menu</p>
                     <div class="bg-yellow-100 border-l-4 border-yellow-400 p-4 max-w-2xl mx-auto rounded">
                         <p class="text-yellow-800">
@@ -676,7 +692,8 @@
                             class="action-button text-white px-8 py-4 text-lg font-semibold touch-feedback">
                         Confirmer et voir le menu
                     </button>
-                    <button onclick="goBackToServiceMode()" 
+                    <button onclick="goBackFromAllergenSelection()" 
+                            id="allergen-back-btn"  
                             class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
                         <i class="fas fa-arrow-left mr-2"></i>Retour
                     </button>
@@ -693,6 +710,14 @@
                         </span>
                     </h2>
                     <p class="text-gray-600 text-lg">Sélectionnez vos plats favoris ! 🍽️</p>
+                </div>
+
+                <!-- Bouton de retour -->
+                <div class="text-center-mb-6">
+                    <button onclick="goBackFromMenu()" 
+                            class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
+                    </button>
                 </div>
 
                 <!-- Barre de recherche -->
@@ -766,7 +791,7 @@
             </div>
         </div>
 
-        <!-- Modal Produit avec options de personnalisation -->
+        <!-- Modal Produit -->
         <div class="modern-modal" id="productModal">
             <!-- Contenu généré dynamiquement -->
         </div>
@@ -788,7 +813,6 @@
                         <br>Carte Bancaire
                     </button>
                 </div>
-
                 <div class="text-center mt-6">
                     <button onclick="closePaymentModal()" 
                             class="bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-400 touch-feedback">
@@ -825,25 +849,7 @@
 
         <!-- JavaScript -->
         <script>
-            // Configuration des allergènes (14 obligatoires UE)
-            const ALLERGENS = {
-                1: { code: 'GLU', name: 'Gluten', icon: '🌾' },
-                2: { code: 'CRU', name: 'Crustacés', icon: '🦐' },
-                3: { code: 'EGG', name: 'Œufs', icon: '🥚' },
-                4: { code: 'FSH', name: 'Poisson', icon: '🐟' },
-                5: { code: 'PNT', name: 'Arachides', icon: '🥜' },
-                6: { code: 'SOY', name: 'Soja', icon: '🌱' },
-                7: { code: 'MLK', name: 'Lait', icon: '🥛' },
-                8: { code: 'NUT', name: 'Fruits à coque', icon: '🌰' },
-                9: { code: 'CEL', name: 'Céleri', icon: '🥬' },
-                10: { code: 'MUS', name: 'Moutarde', icon: '🟡' },
-                11: { code: 'SES', name: 'Graines de sésame', icon: '⚪' },
-                12: { code: 'SUL', name: 'Sulfites', icon: '🧪' },
-                13: { code: 'LUP', name: 'Lupin', icon: '🌿' },
-                14: { code: 'MOL', name: 'Mollusques', icon: '🦪' }
-            };
-
-            // Configuration des options de produits (type McDonald's)
+            // Configuration des options de produits
             const PRODUCT_OPTIONS = {
                 burgers: {
                     sizes: [
@@ -862,7 +868,7 @@
                         { id: 'bbq', name: 'Sauce BBQ', price: 0.50 }
                     ]
                 },
-                boissons: {
+                drinks: {
                     sizes: [
                         { id: 'small', name: 'Petit (33cl)', price: 0 },
                         { id: 'medium', name: 'Moyen (50cl)', price: 0.50 },
@@ -886,7 +892,40 @@
                         { id: 'mushrooms', name: 'Champignons', price: 1.50 },
                         { id: 'olives', name: 'Olives', price: 1.50 }
                     ]
+                },
+                menus: {
+                    drink_choices: [], // Rempli dynamiquement depuis Hiboutik
+                    side_choices: [],  // Rempli dynamiquement depuis Hiboutik
+                    dessert_choices: [] // Rempli dynamiquement depuis Hiboutik
                 }
+            }
+
+            // Variables pour les options séléctionnées
+            let selectedOptions = {
+                size: null,
+                sizePrice: 0,
+                sauce: null,
+                saucePrice: 0,
+                extras: [],
+                extrasPrice: 0
+            }
+
+            // Configuration des allergènes (14 obligatoires UE)
+            const ALLERGENS = {
+                1: { code: 'GLU', name: 'Gluten', icon: '🌾' },
+                2: { code: 'CRU', name: 'Crustacés', icon: '🦐' },
+                3: { code: 'EGG', name: 'Œufs', icon: '🥚' },
+                4: { code: 'FSH', name: 'Poisson', icon: '🐟' },
+                5: { code: 'PNT', name: 'Arachides', icon: '🥜' },
+                6: { code: 'SOY', name: 'Soja', icon: '🌱' },
+                7: { code: 'MLK', name: 'Lait', icon: '🥛' },
+                8: { code: 'NUT', name: 'Fruits à coque', icon: '🌰' },
+                9: { code: 'CEL', name: 'Céleri', icon: '🥬' },
+                10: { code: 'MUS', name: 'Moutarde', icon: '🟡' },
+                11: { code: 'SES', name: 'Graines de sésame', icon: '⚪' },
+                12: { code: 'SUL', name: 'Sulfites', icon: '🧪' },
+                13: { code: 'LUP', name: 'Lupin', icon: '🌿' },
+                14: { code: 'MOL', name: 'Mollusques', icon: '🦪' }
             };
 
             // Configuration des tables (20 tables)
@@ -903,8 +942,7 @@
                 cart: [],
                 currentCategory: 'all',
                 products: [],
-                categories: [],
-                promoApplied: false
+                categories: []
             };
 
             // Base de données produits simulée
@@ -978,7 +1016,6 @@
                 generateAllergenGrid();
                 generateTableGrid();
                 initializeEventListeners();
-                updateStepProgress();
             });
 
             function initializeEventListeners() {
@@ -986,32 +1023,6 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) {
                     searchInput.addEventListener('input', debounce(handleSearch, 300));
-                }
-            }
-
-            // GESTION DES ÉTAPES DE PROGRESSION
-
-            function updateStepProgress() {
-                // Reset all steps
-                for (let i = 1; i <= 3; i++) {
-                    const step = document.getElementById(`step${i}`);
-                    const connector = document.getElementById(`connector${i}`);
-                    
-                    step.classList.remove('active', 'completed');
-                    if (connector) connector.classList.remove('active');
-                }
-
-                // Set current and completed steps
-                for (let i = 1; i <= 3; i++) {
-                    const step = document.getElementById(`step${i}`);
-                    const connector = document.getElementById(`connector${i}`);
-                    
-                    if (i < appState.currentStep) {
-                        step.classList.add('completed');
-                        if (connector) connector.classList.add('active');
-                    } else if (i === appState.currentStep) {
-                        step.classList.add('active');
-                    }
                 }
             }
 
@@ -1039,6 +1050,7 @@
                     showScreen('table-selection-screen');
                 } else {
                     showScreen('allergen-selection-screen');
+                    updateAllergenBackButton();
                 }
                 
                 showToast(`Mode "${mode === 'sur_place' ? 'Sur place' : 'À emporter'}" sélectionné`, 'success');
@@ -1050,6 +1062,44 @@
                 appState.currentStep = 1;
                 updateStepProgress();
                 showScreen('service-mode-screen');
+            }
+
+            function goBackFromAllergenSelection() {
+                appState.customerAllergens = [];
+
+                // décocher touts les allergies
+                document.querySelectorAll('.allergen-card').forEach(card => {
+                    card.classList.remove('selected');
+                    const icon = card.querySelector('.text-4xl');
+                    const allergenId = card.querySelector('.allergen-checkbox').value;
+                    const allergen = ALLERGENS[allergenId];
+                    icon.textContent = allergen.icon;
+                });
+
+                if (appState.serviceMode === 'sur_place') {
+                    // retour vers selection de table
+                    showScreen('table-selection-screen');
+                } else {
+                    // retour vers selection de mode e service pour "à emporter"
+                    goBackToServiceMode();
+                }
+            }
+
+            function goBackFromMenu() {
+                appState.currentStep = 1;
+                updateStepProgress();
+                showScreen('allergen-selection-screen');
+            }
+
+            function updateAllergenBackButton() {
+                const backbtn = document.getElementById('allergen-back-btn');
+                if (backbtn) {
+                    if (appState.serviceMode === 'a_emporter') {
+                        backbtn.style.display = 'none';
+                    } else {
+                        backbtn.style.display = 'inline-block';
+                    }
+                }
             }
 
             // GESTION DES TABLES
@@ -1084,6 +1134,7 @@
 
             function setTableNumber(tableNum) {
                 if (TABLE_STATUS[tableNum] === 'occupied') {
+                    updateAllergenBackButton();
                     showToast('Cette table est occupée', 'error');
                     return;
                 }
@@ -1127,7 +1178,6 @@
                     appState.customerAllergens = appState.customerAllergens.filter(id => id !== allergenId);
                     card.classList.remove('selected');
                     checkbox.checked = false;
-                    card.querySelector('.text-4xl').textContent = ALLERGENS[allergenId].icon;
                 } else {
                     // Ajouter l'allergène
                     appState.customerAllergens.push(allergenId);
@@ -1272,7 +1322,7 @@
                             <div class="text-3xl font-bold text-green-600 mb-6" id="modal-price">${product.price.toFixed(2)}€</div>
                         </div>
                         
-                        ${product.allergens.length > 0 ? `
+                        ${product.allergens && product.allergens.length > 0 ? `
                             <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
                                 <p class="font-semibold text-yellow-800 mb-2">Allergènes présents :</p>
                                 <div class="flex flex-wrap gap-2">
@@ -1312,10 +1362,10 @@
                                             <div class="flex items-center">
                                                 ${extra.price > 0 ? `<span class="mr-2 text-green-600">+${extra.price}€</span>` : ''}
                                                 <input type="checkbox" 
-                                                       class="extra-option" 
-                                                       data-extra="${extra.id}" 
-                                                       data-price="${extra.price}"
-                                                       onchange="toggleProductExtra('${extra.id}', ${extra.price})">
+                                                    class="extra-option" 
+                                                    data-extra="${extra.id}" 
+                                                    data-price="${extra.price}"
+                                                    onchange="toggleProductExtra('${extra.id}', ${extra.price})">
                                             </div>
                                         </label>
                                     `).join('')}
@@ -1330,13 +1380,32 @@
                                     ${options.sauces.map(sauce => `
                                         <label class="flex items-center p-2 border rounded hover:bg-gray-50 cursor-pointer touch-feedback">
                                             <input type="radio" 
-                                                   name="sauce" 
-                                                   class="mr-2" 
-                                                   value="${sauce.id}"
-                                                   data-price="${sauce.price}"
-                                                   onchange="selectProductOption('sauce', '${sauce.id}', ${sauce.price})">
+                                                name="sauce" 
+                                                class="mr-2" 
+                                                value="${sauce.id}"
+                                                data-price="${sauce.price}"
+                                                onchange="selectProductOption('sauce', '${sauce.id}', ${sauce.price})">
                                             <span>${sauce.name}</span>
                                             ${sauce.price > 0 ? `<span class="ml-auto text-green-600">+${sauce.price}€</span>` : ''}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${options.ice ? `
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3">Glaçons</h3>
+                                <div class="grid grid-cols-3 gap-2">
+                                    ${options.ice.map(ice => `
+                                        <label class="flex items-center p-2 border rounded hover:bg-gray-50 cursor-pointer touch-feedback">
+                                            <input type="radio" 
+                                                name="ice" 
+                                                class="mr-2" 
+                                                value="${ice.id}"
+                                                data-price="${ice.price}"
+                                                onchange="selectProductOption('ice', '${ice.id}', ${ice.price})">
+                                            <span class="text-sm">${ice.name}</span>
                                         </label>
                                     `).join('')}
                                 </div>
@@ -1361,7 +1430,7 @@
                             <textarea id="special-instructions" 
                                     class="w-full p-3 border border-gray-300 rounded-lg resize-none" 
                                     rows="3" 
-                                    placeholder="Ex: Sans oignons, bien cuit, etc..."></textarea>
+                                    placeholder="Ex: Sans oignons, bien cuit, extra sauce, etc..."></textarea>
                         </div>
                         
                         <div class="flex space-x-4">
@@ -1379,67 +1448,80 @@
                 
                 // Sélectionner la première taille par défaut si disponible
                 if (options.sizes && options.sizes.length > 0) {
-                    document.querySelector('.size-option').click();
+                    setTimeout(() => {
+                        const firstSizeBtn = document.querySelector('.size-option');
+                        if (firstSizeBtn) {
+                            firstSizeBtn.click();
+                        }
+                    }, 100);
                 }
                 
                 modal.classList.add('active');
             }
 
-            // Variables pour stocker les options sélectionnées
-            let selectedOptions = {
-                size: null,
-                sizePrice: 0,
-                sauce: null,
-                saucePrice: 0,
-                extras: [],
-                extrasPrice: 0
-            };
+            // Gestion de la progression des étapes
+            function updateStepProgress() {
+                for (let i = 1; i <= 3; i++) {
+                    const step = document.getElementById(`step${i}`);
+                    const connector = document.getElementById(`connector${i}`);
 
+                    step.classList.remove('active', 'completed');
+                    if (connector) connector.classList.remove('active');
+
+                    if (i < appState.currentStep) {
+                        step.classList.add('completed');
+                        if (connector) connector.classList.add('active');
+                    } else if (i === appState.currentStep) {
+                        step.classList.add('active');
+                    }
+                }
+            }
+
+            // Séléction d'option produit
             function selectProductOption(type, optionId, price) {
                 if (type === 'size') {
-                    // Retirer la sélection précédente
                     document.querySelectorAll('.size-option').forEach(btn => {
                         btn.classList.remove('bg-blue-500', 'text-white');
                     });
-                    
-                    // Ajouter la nouvelle sélection
                     event.target.classList.add('bg-blue-500', 'text-white');
                     selectedOptions.size = optionId;
                     selectedOptions.sizePrice = price;
-                } else if (type === 'sauce') {
-                    selectedOptions.sauce = optionId;
-                    selectedOptions.saucePrice = price;
                 }
-                
-                updateModalPrice();
+                updateModalePrice();
             }
 
+            // Mise à jour du prix dans la modale
+            function updateModalPrice() {
+                const productId = parseInt(document.querySelector('[onclick*="addToCart"]').getAttribute('onclick').match(/\d+/)[0]);
+                const product = appState.products.find(p => p.id === productId);
+                const basePrice = product ? product.price : 0;
+                const totalPrice = basePrice + selectedOptions.sizePrice + selectedOptions.extrasPrice;
+                // document.getElementById('modal-price').textContent = `${totalPrice.toFixed(2)}€`;
+                const priceElement = document.getElementById('modal-price');
+                if (priceElement) {
+                    priceElement.textContent = `${totalPrice.toFixed(2)}€`;
+                }
+            }
+
+            // Gérer les extras (suppléments)
             function toggleProductExtra(extraId, price) {
                 const checkbox = event.target;
-                
+
                 if (checkbox.checked) {
-                    selectedOptions.extras.push({ id: extraId, price: price });
+                    selectedOptions.extras.push({ id: extraId, price: price});
                     selectedOptions.extrasPrice += price;
                 } else {
                     selectedOptions.extras = selectedOptions.extras.filter(extra => extra.id !== extraId);
                     selectedOptions.extrasPrice = selectedOptions.extras.reduce((sum, extra) => sum + extra.price, 0);
                 }
-                
-                updateModalPrice();
+
+                updateModalePrice();
             }
 
-            function updateModalPrice() {
-                const basePrice = parseFloat(document.getElementById('modal-price').textContent);
-                const productId = parseInt(document.querySelector('[onclick*="addToCart"]').getAttribute('onclick').match(/\d+/)[0]);
-                const product = appState.products.find(p => p.id === productId);
-                
-                const totalPrice = product.price + selectedOptions.sizePrice + selectedOptions.saucePrice + selectedOptions.extrasPrice;
-                document.getElementById('modal-price').textContent = `${totalPrice.toFixed(2)}€`;
-            }
-
+            // Fermer la modal et réinitialiser les options
             function closeProductModal() {
                 document.getElementById('productModal').classList.remove('active');
-                // Réinitialiser les options sélectionnées
+                // réinitialiser les options
                 selectedOptions = {
                     size: null,
                     sizePrice: 0,
@@ -1458,27 +1540,6 @@
 
                 const quantity = parseInt(document.getElementById('quantity').textContent) || 1;
                 const specialInstructions = document.getElementById('special-instructions').value;
-                
-                // Calculer le prix total avec les options
-                const basePrice = product.price;
-                const optionsPrice = selectedOptions.sizePrice + selectedOptions.saucePrice + selectedOptions.extrasPrice;
-                const unitPrice = basePrice + optionsPrice;
-                const totalPrice = unitPrice * quantity;
-
-                // Créer l'objet options pour l'affichage
-                const options = [];
-                if (selectedOptions.size) {
-                    const sizeOption = PRODUCT_OPTIONS[product.category]?.sizes?.find(s => s.id === selectedOptions.size);
-                    if (sizeOption) options.push(sizeOption.name);
-                }
-                if (selectedOptions.sauce) {
-                    const sauceOption = PRODUCT_OPTIONS[product.category]?.sauces?.find(s => s.id === selectedOptions.sauce);
-                    if (sauceOption) options.push(sauceOption.name);
-                }
-                selectedOptions.extras.forEach(extra => {
-                    const extraOption = PRODUCT_OPTIONS[product.category]?.extras?.find(e => e.id === extra.id);
-                    if (extraOption) options.push(extraOption.name);
-                });
 
                 const cartItem = {
                     id: Date.now(),
@@ -1486,12 +1547,10 @@
                     product_name: product.name,
                     product_emoji: product.emoji,
                     quantity: quantity,
-                    unit_price: unitPrice,
-                    total_price: totalPrice,
+                    unit_price: product.price,
+                    total_price: product.price * quantity,
                     special_instructions: specialInstructions,
-                    image_url: product.image_url,
-                    options: options,
-                    selectedOptions: { ...selectedOptions }
+                    image_url: product.image_url
                 };
 
                 appState.cart.push(cartItem);
@@ -1563,7 +1622,7 @@
                 }
 
                 let total = appState.cart.reduce((sum, item) => sum + item.total_price, 0);
-                const discount = appState.cart.reduce((sum, item) => sum + item.quantity, 0) >= 3 ? 0.1 : 0;
+                const discount = appState.cart.length >= 3 ? 0.1 : 0;
                 const finalTotal = total * (1 - discount);
                 
                 container.innerHTML = appState.cart.map(item => `
@@ -1572,16 +1631,13 @@
                         <div class="flex-1">
                             <h4 class="font-semibold text-gray-800">${item.product_name}</h4>
                             <p class="text-sm text-gray-600">Quantité: ${item.quantity}</p>
-                            ${item.options && item.options.length > 0 ? `
-                                <p class="text-xs text-blue-600">Options: ${item.options.join(', ')}</p>
-                            ` : ''}
                             ${item.special_instructions ? `
                                 <p class="text-xs text-blue-600">Note: ${item.special_instructions}</p>
                             ` : ''}
                         </div>
                         <div class="text-right">
                             <p class="font-bold text-green-600">${item.total_price.toFixed(2)}€</p>
-                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 text-sm touch-feedback">
+                            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 text-sm">
                                 <i class="fas fa-trash"></i> Supprimer
                             </button>
                         </div>
@@ -1590,8 +1646,8 @@
                 
                 if (discount > 0) {
                     container.innerHTML += `
-                        <div class="text-center text-green-600 font-semibold p-4 bg-green-50 rounded-lg">
-                            🎉 Réduction de 10% appliquée ! (-${(total * discount).toFixed(2)}€)
+                        <div class="text-center text-green-600 font-semibold p-4">
+                            🎉 Réduction de 10% appliquée !
                         </div>
                     `;
                 }
@@ -1610,13 +1666,13 @@
             // PROCESSUS DE PAIEMENT
             
             function proceedToCheckout() {
+                appState.currentStep = 3;
+                updateStepProgress();
                 if (appState.cart.length === 0) {
                     showToast('Votre panier est vide', 'error');
                     return;
                 }
 
-                appState.currentStep = 3;
-                updateStepProgress();
                 closeCart();
                 document.getElementById('paymentModal').classList.add('active');
             }
@@ -1631,7 +1687,7 @@
 
             function closePaymentModal() {
                 document.getElementById('paymentModal').classList.remove('active');
-                // Retourner à l'étape 2 si on annule
+                // retourner à l'étape 2 sion annule
                 appState.currentStep = 2;
                 updateStepProgress();
             }
@@ -1639,48 +1695,17 @@
             async function processPayment(method) {
                 document.getElementById('paymentModal').classList.remove('active');
                 
-                const paymentText = method === 'cash' ? 'espèces' : 'carte bancaire';
-                showToast(`Traitement du paiement ${paymentText} en cours...`, 'info');
+                showToast('Traitement du paiement en cours...', 'info');
                 
-                // Simuler le traitement du paiement
+                // Simuler le traitement
                 setTimeout(() => {
-                    // Créer la commande
-                    const order = createOrder(method);
-                    console.log('Commande créée:', order);
-                    
                     showConfirmationScreen();
                 }, 2000);
-            }
-
-            function createOrder(paymentMethod) {
-                const total = appState.cart.reduce((sum, item) => sum + item.total_price, 0);
-                const discount = appState.cart.reduce((sum, item) => sum + item.quantity, 0) >= 3 ? 0.1 : 0;
-                const finalTotal = total * (1 - discount);
-                
-                return {
-                    order_number: `BC-${Date.now().toString().slice(-6)}`,
-                    service_mode: appState.serviceMode,
-                    table_number: appState.tableNumber,
-                    customer_allergens: appState.customerAllergens,
-                    items: appState.cart,
-                    subtotal: total,
-                    discount_percentage: discount * 100,
-                    discount_amount: total * discount,
-                    total_amount: finalTotal,
-                    payment_method: paymentMethod,
-                    created_at: new Date().toISOString()
-                };
             }
 
             function showConfirmationScreen() {
                 const orderNumber = `BC-${Date.now().toString().slice(-6)}`;
                 document.getElementById('order-number').textContent = `#${orderNumber}`;
-                
-                // Estimer le temps d'attente basé sur le nombre d'articles
-                const itemCount = appState.cart.reduce((sum, item) => sum + item.quantity, 0);
-                const estimatedTime = Math.max(10, Math.min(30, itemCount * 3)) + '-' + (Math.max(10, Math.min(30, itemCount * 3)) + 5);
-                document.getElementById('estimated-time').textContent = `${estimatedTime} minutes`;
-                
                 document.getElementById('confirmation-screen').classList.remove('hidden');
                 
                 createConfetti();
@@ -1694,7 +1719,6 @@
                 appState.tableNumber = null;
                 appState.customerAllergens = [];
                 appState.promoApplied = false;
-                appState.currentStep = 1;
                 
                 // Masquer l'écran de confirmation
                 document.getElementById('confirmation-screen').classList.add('hidden');
@@ -1702,17 +1726,9 @@
                 // Réinitialiser les checkboxes allergènes
                 document.querySelectorAll('.allergen-card').forEach(card => {
                     card.classList.remove('selected');
-                    const checkbox = card.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = false;
-                    const icon = card.querySelector('.text-4xl');
-                    const allergenId = checkbox.value;
-                    if (icon && ALLERGENS[allergenId]) {
-                        icon.textContent = ALLERGENS[allergenId].icon;
-                    }
                 });
                 
                 // Retourner à l'écran de sélection du service
-                updateStepProgress();
                 showScreen('service-mode-screen');
                 updateCartUI();
             }
@@ -1724,7 +1740,7 @@
                 const current = parseInt(quantityEl.textContent);
                 if (current < 20) {
                     quantityEl.textContent = current + 1;
-                    updateModalPrice();
+                    updateModalePrice();
                 }
             }
 
@@ -1733,7 +1749,7 @@
                 const current = parseInt(quantityEl.textContent);
                 if (current > 1) {
                     quantityEl.textContent = current - 1;
-                    updateModalPrice();
+                    updateModalePrice();
                 }
             }
 
@@ -1745,19 +1761,10 @@
                     return;
                 }
                 
-                let filteredProducts = appState.products.filter(product => 
+                const filteredProducts = appState.products.filter(product => 
                     product.name.toLowerCase().includes(query) ||
                     product.description.toLowerCase().includes(query)
                 );
-
-                // Appliquer aussi le filtre des allergènes
-                if (appState.customerAllergens.length > 0) {
-                    filteredProducts = filteredProducts.filter(product => 
-                        !product.allergens.some(allergenId => 
-                            appState.customerAllergens.includes(allergenId)
-                        )
-                    );
-                }
                 
                 const grid = document.getElementById('products-grid');
                 if (filteredProducts.length === 0) {
@@ -1844,51 +1851,15 @@
                 document.getElementById('connection-indicator').className = 'bg-red-500 text-white px-4 py-2 rounded-full text-sm';
             });
 
-            // API pour intégration future avec backend
+            // API pour intégration
             window.kioskApp = {
-                // Méthodes de navigation
                 setServiceMode,
                 setTableNumber,
                 toggleAllergen,
-                
-                // Méthodes de produits
                 showProductModal,
                 addToCart,
-                removeFromCart,
-                
-                // Méthodes de paiement
-                proceedToCheckout,
-                processPayment,
-                
-                // Utilitaires
                 showToast,
-                createConfetti,
-                
-                // État de l'application
-                getState: () => appState,
-                
-                // Méthodes pour l'intégration API
-                loadProducts: (products) => {
-                    appState.products = products;
-                    renderProducts();
-                },
-                loadCategories: (categories) => {
-                    appState.categories = categories;
-                    renderCategories();
-                },
-                
-                // Simulation d'appel API
-                submitOrder: async (order) => {
-                    console.log('Envoi de la commande au backend:', order);
-                    // Ici on intégrerait l'appel à l'API backend
-                    // const response = await fetch('/api/orders', {
-                    //     method: 'POST',
-                    //     headers: { 'Content-Type': 'application/json' },
-                    //     body: JSON.stringify(order)
-                    // });
-                    // return response.json();
-                    return { success: true, order_id: Date.now() };
-                }
+                getState: () => appState
             };
 
             console.log('✅ Kiosque prêt ! API disponible via window.kioskApp');
