@@ -20,6 +20,7 @@
                 --bg-gradient: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #eab308 100%);
                 --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
                 --bounce-timing: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                --sidebar-width: 320px
             }
 
             * {
@@ -488,61 +489,148 @@
                 left: 0;
                 top: 200px;
                 bottom: 0;
-                width: 280px;
-                background: white;
-                box-shadow: 5px 0 30px rgba(0, 0, 0, 0.1);
+                width: var(--sidebar-width);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-right: 1px solid rgba(226, 232, 240, 0.8);
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
                 overflow-y: auto;
-                z-index: 100;
+                z-index: 200;
                 transform: translateX(0);
-                transition: transform 0.3s ease;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
             .sidebar-menu.hidden {
                 transform: translateX(-100%);
             }
 
+            .sidebar-header {
+                padding: 2rem;
+                border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .sidebar-header:before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+                animation: pulse 4s ease-in-out infinite;
+            }
+
+            .sidebar-header h3 {
+                font-size: 1.5rem;
+                font-weight: 800;
+                margin-bottom: 0.5rem;
+                position: relative;
+                z-index: 1;
+            }
+
+            .sidebar-header p {
+                font-size: 0.9rem;
+                opacity: 0.9;
+                position: relative;
+                z-index: 1;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 199;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+                opacity: 1;
+            }
+
+            @media (max-width: 768px) {
+                .sidebar-menu.show ~ .sidebar-overlay {
+                    display: block;
+                    opacity: 1;
+                }
+            }
+
             .menu-category {
-                padding: 1.5rem;
-                border-bottom: 1px solid #e5e7eb;
+                margin: 0.5rem 1rem;
+                padding: 1.25rem 1.5rem;
+                border-radius: 16px;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 display: flex;
                 align-items: center;
                 gap: 1rem;
+                position: relative;
+                overflow: hidden;
+                border: 2px solid transparent;
             }
 
             .menu-category:hover {
-                background: linear-gradient(90deg, #eff6ff 0%, #fff 100%);
-                padding-left: 2rem;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(34, 197, 94, 0.05) 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+                border-color: rgba(59, 130, 246, 0.2);
             }
 
             .menu-category.active {
-                background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                 color: white;
                 font-weight: 600;
-                box-shadow: inset 3px 0 0 var(--tertiary);
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 12px 40px rgba(30, 64, 175, 0.25);
+                border-color: transparent;
             }
 
             .menu-category-icon {
-                font-size: 1.5rem;
-                width: 40px;
-                text-align: center;
+                font-size: 1.8rem;
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(59, 130, 246, 0.1);
+                border-radius: 12px;
+                transition: all 0.3s ease;
+            }
+
+            .menu-category.active .menu-category-icon {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.2);
             }
 
             .menu-category-name {
                 flex: 1;
-                font-size: 1rem;
+                font-size: 1.1rem;
+                font-weight: 600;
             }
 
             .menu-category-count {
-                background: rgba(0, 0, 0, 0.1);
-                padding: 0.25rem 0.75rem;
+                background: rgba(59, 130, 246, 0.15);
+                color: var(--primary);
+                padding: 0.4rem 1rem;
                 border-radius: 20px;
-                font-size: 0.875rem;
+                font-size: 0.85rem;
+                font-weight: 600;
+                min-width: 35px;
+                text-align: center;
+                transition: all 0.3s ease;
             }
 
             .menu-category.active .menu-category-count {
-                background: rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.25);
+                color: white;
+                transform: scale(1.1);
             }
             /* .category-pill {
                 background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
@@ -568,8 +656,9 @@
 
             /* Content avec sidebar */
             .main-content-with-sidebar {
-                margin-left: 280px;
-                transition: margin-left 0.3s ease;
+                margin-left: var(--sidebar-width);
+                transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                min-height: 100vh;
             }
 
             .main-content-with-sidebar.full-width {
@@ -580,22 +669,41 @@
             .sidebar-toggle {
                 display: none;
                 position: fixed;
+                top: 50%;
                 left: 20px;
-                bottom: 100px;
+                transform: translateY(-50%);
                 width: 60px;
                 height: 60px;
                 background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                 color: white;
-                border-radius: 50%;
+                border-radius: 20px;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 z-index: 999;
-                box-shadow: 0 10px 30px rgba(30, 64, 175, 0.4);
+                box-shadow: 0 8px 32px rgba(30, 64, 175, 0.3);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.3s ease;
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .sidebar-toggle:hover {
+                transform: translateY(-50%) scale(1.1);
+                box-shadow: 0 12px 40px rgba(30, 64, 175, 0.4);
+            }
+
+            .sidebar-toggle.hidden {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-50%) scale(0.8);
             }
 
             /* Responsive */
             @media (max-width: 768px) {
+                :root {
+                    --sidebar-width: 100%;
+                }
                 .service-card {
                     padding: 2rem;
                 }
@@ -627,8 +735,10 @@
                 }
 
                 .sidebar-menu {
-                    width: 100%;
+                    /* width: 100%; */
+                    top: 0;
                     transform: translateX(-100%);
+                    z-index: 2500; /* au dessus du header */
                 }
 
                 .sidebar-menu.show {
@@ -642,6 +752,39 @@
                 .sidebar-toggle {
                     display: flex;
                 }
+
+                .menu-category {
+                    margin: 0.25rem 0.5rem;
+                    padding: 1rem 1.25rem;
+                }
+
+                .sidebar-header {
+                    padding: 1.5rem;
+                    /* margin-top: 200px; espace pour le header */
+                }
+            }
+
+            /* Scrollbar personnalisé pour le sidebar */
+            .sidebar-menu::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .sidebar-menu::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .sidebar-menu::-webkit-scrollbar-thumb {
+                background: rgba(59, 130, 246, 0.3);
+                border-radius: 10px;
+            }
+
+            .sidebar-menu::-webkit-scrollbar-thumb:hover {
+                background: rgba(59, 130, 246, 0.5);
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
             }
         </style>
     </head>
@@ -808,52 +951,68 @@
 
             <!-- Étape 4: Menu principal -->
             <div id="main-menu-screen" class="hidden">
-                <!-- Hero Section -->
-                <div class="text-center mb-8 bounce-in">
-                    <h2 class="text-4xl md:text-5xl font-bold mb-4">
-                        <span class="bg-gradient-to-r from-blue-700 via-green-700 to-yellow-500 bg-clip-text text-transparent">
-                            Notre Menu
-                        </span>
-                    </h2>
-                    <p class="text-gray-600 text-lg">Sélectionnez vos plats favoris ! 🍽️</p>
-                </div>
-
-                <!-- Bouton de retour -->
-                <div class="text-center-mb-6">
-                    <button onclick="goBackFromMenu()" 
-                            class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour
-                    </button>
-                </div>
-
-                <!-- Barre de recherche -->
-                <div class="relative max-w-2xl mx-auto mb-8">
-                    <input type="text" 
-                        id="searchInput"
-                        placeholder="🔍 Rechercher un plat..." 
-                        class="w-full px-6 py-4 pl-14 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none text-lg transition-all duration-300 focus:shadow-lg">
-                    <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
-                </div>
-
-                <!-- Catégories -->
-                <div class="flex flex-wrap gap-4 justify-center mb-8" id="categories-nav">
-                    <!-- Catégories générées dynamiquement -->
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="max-w-4xl mx-auto mb-8">
-                    <div class="flex justify-between text-sm font-medium text-gray-600 mb-2">
-                        <span>Sélectionnez vos plats</span>
-                        <span>3 articles minimum pour -10% ! 🎁</span>
+                <!-- Sidebar Menu -->
+                <div class="sidebar-menu hidden slide-in-left" id="sidebarMenu">
+                    <div class="sidebar-header">
+                        <h3>🍽️ Catégories</h3>
+                        <p>Découvrez nos spécialités</p>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                    <div id="sidebar-categories" class="py-4">
+                        <!-- Catégories générées dynamiquement -->
                     </div>
                 </div>
 
-                <!-- Grille des produits -->
-                <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Produits générés dynamiquement -->
+                <!-- Toggle button pour mobile - Position améliorée -->
+                <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars text-2xl"></i>
+                </div>
+
+                <!-- Overlay pour mobile -->
+                 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+                <div class="main-content-with-sidebar full-width" id="mainContent">
+                    <!-- Hero Section -->
+                    <div class="text-center mb-8 bounce-in">
+                        <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                            <span class="bg-gradient-to-r from-blue-700 via-green-700 to-yellow-500 bg-clip-text text-transparent">
+                                Notre Menu
+                            </span>
+                        </h2>
+                        <p class="text-gray-600 text-lg">Sélectionnez vos plats favoris ! 🍽️</p>
+                    </div>
+
+                    <!-- Bouton de retour -->
+                    <div class="text-center mb-6">
+                        <button onclick="goBackFromMenu()" 
+                                class="bg-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-400 touch-feedback">
+                            <i class="fas fa-arrow-left mr-2"></i>Retour
+                        </button>
+                    </div>
+
+                    <!-- Barre de recherche -->
+                    <div class="relative max-w-2xl mx-auto mb-8">
+                        <input type="text" 
+                            id="searchInput"
+                            placeholder="🔍 Rechercher un plat..." 
+                            class="w-full px-6 py-4 pl-14 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none text-lg transition-all duration-300 focus:shadow-lg">
+                        <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="max-w-4xl mx-auto mb-8">
+                        <div class="flex justify-between text-sm font-medium text-gray-600 mb-2">
+                            <span>Sélectionnez vos plats</span>
+                            <span>3 articles minimum pour -10% ! 🎁</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Grille des produits -->
+                    <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- Produits générés dynamiquement -->
+                    </div>
                 </div>
             </div>
         </main>
@@ -1194,6 +1353,19 @@
             function goBackFromMenu() {
                 appState.currentStep = 1;
                 updateStepProgress();
+
+                // Cacher la sidebar
+                const sidebar = document.getElementById('sidebarMenu');
+                const mainContent = document.getElementById('mainContent');
+                sidebar.classList.add('hidden');
+                mainContent.classList.add('full-width');
+                
+                if (appState.serviceMode === 'sur_place' && appState.tableNumber) {
+                    showScreen('table-selection-screen');
+                } else {
+                    goBackToServiceMode();
+                }
+
                 showScreen('allergen-selection-screen');
             }
 
@@ -1309,29 +1481,93 @@
                 appState.currentStep = 2;
                 updateStepProgress();
                 showScreen('main-menu-screen');
-                renderCategories();
+                // renderCategories();
+                renderSidebarCategories();
                 renderProducts();
+
+                // Afficher la sidebar
+                const sidebar = document.getElementById('sidebarMenu');
+                const mainContent = document.getElementById('mainContent');
+                sidebar.classList.remove('hidden');
+                mainContent.classList.remove('full-width');
             }
 
             // GESTION DU MENU
             
-            function renderCategories() {
-                const nav = document.getElementById('categories-nav');
-                if (!nav) return;
+            // function renderCategories() {
+            //     const nav = document.getElementById('categories-nav');
+            //     if (!nav) return;
                 
-                nav.innerHTML = appState.categories.map(category => `
-                    <button onclick="selectCategory('${category.id}')" 
-                            class="category-pill ${appState.currentCategory === category.id ? 'active' : ''} touch-feedback">
-                        <span class="mr-2">${category.icon}</span>
-                        ${category.name}
-                    </button>
+            //     nav.innerHTML = appState.categories.map(category => `
+            //         <button onclick="selectCategory('${category.id}')" 
+            //                 class="category-pill ${appState.currentCategory === category.id ? 'active' : ''} touch-feedback">
+            //             <span class="mr-2">${category.icon}</span>
+            //             ${category.name}
+            //         </button>
+            //     `).join('');
+            // }
+
+            function renderSidebarCategories() {
+                const container = document.getElementById('sidebar-categories');
+                if (!container) return;
+                
+                // Compter les produits par catégorie
+                const productCounts = {};
+                appState.categories.forEach(cat => {
+                    if (cat.id === 'all') {
+                        productCounts[cat.id] = appState.products.length;
+                    } else {
+                        productCounts[cat.id] = appState.products.filter(p => p.category === cat.id).length;
+                    }
+                });
+                
+                container.innerHTML = appState.categories.map(category => `
+                    <div class="menu-category ${appState.currentCategory === category.id ? 'active' : ''}" 
+                         onclick="selectCategory('${category.id}')">
+                        <span class="menu-category-icon">${category.icon}</span>
+                        <span class="menu-category-name">${category.name}</span>
+                        <span class="menu-category-count">${productCounts[category.id] || 0}</span>
+                    </div>
                 `).join('');
+            }
+
+            // function toggleSidebar() {
+            //     const sidebar = document.getElementById('sidebarMenu');
+            //     sidebar.classList.toggle('show');
+            // }
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebarMenu');
+                const toggle = document.getElementById('sidebarToggle');
+                
+                if (sidebar.classList.contains('show')) {
+                    // Fermer la sidebar
+                    sidebar.classList.remove('show');
+                    toggle.classList.remove('hidden'); // Montrer le bouton burger
+                } else {
+                    // Ouvrir la sidebar
+                    sidebar.classList.add('show');
+                    toggle.classList.add('hidden'); // Cacher le bouton burger
+                }
             }
 
             function selectCategory(categoryId) {
                 appState.currentCategory = categoryId;
-                renderCategories();
+                // renderCategories();
+                renderSidebarCategories();
                 renderProducts();
+
+                // // Sur mobile, fermer la sidebar après sélection
+                // if (window.innerWidth <= 768) {
+                //     const sidebar = document.getElementById('sidebarMenu');
+                //     sidebar.classList.remove('show');
+                // }
+                 // Sur mobile, fermer la sidebar après sélection
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.getElementById('sidebarMenu');
+                    const toggle = document.getElementById('sidebarToggle');
+                    sidebar.classList.remove('show');
+                    toggle.classList.remove('hidden'); // Remettre le bouton burger
+                }
             }
 
             function renderProducts() {
@@ -1593,7 +1829,7 @@
                     selectedOptions.size = optionId;
                     selectedOptions.sizePrice = price;
                 }
-                updateModalePrice();
+                updateModalPrice();
             }
 
             // Mise à jour du prix dans la modale
@@ -1621,7 +1857,7 @@
                     selectedOptions.extrasPrice = selectedOptions.extras.reduce((sum, extra) => sum + extra.price, 0);
                 }
 
-                updateModalePrice();
+                updateModalPrice();
             }
 
             // Fermer la modal et réinitialiser les options
@@ -1846,7 +2082,7 @@
                 const current = parseInt(quantityEl.textContent);
                 if (current < 20) {
                     quantityEl.textContent = current + 1;
-                    updateModalePrice();
+                    updateModalPrice();
                 }
             }
 
@@ -1855,7 +2091,7 @@
                 const current = parseInt(quantityEl.textContent);
                 if (current > 1) {
                     quantityEl.textContent = current - 1;
-                    updateModalePrice();
+                    updateModalPrice();
                 }
             }
 
