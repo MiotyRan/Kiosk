@@ -483,7 +483,68 @@
             }
 
             /* Categories */
-            .category-pill {
+            .sidebar-menu {
+                position: fixed;
+                left: 0;
+                top: 200px;
+                bottom: 0;
+                width: 280px;
+                background: white;
+                box-shadow: 5px 0 30px rgba(0, 0, 0, 0.1);
+                overflow-y: auto;
+                z-index: 100;
+                transform: translateX(0);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar-menu.hidden {
+                transform: translateX(-100%);
+            }
+
+            .menu-category {
+                padding: 1.5rem;
+                border-bottom: 1px solid #e5e7eb;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .menu-category:hover {
+                background: linear-gradient(90deg, #eff6ff 0%, #fff 100%);
+                padding-left: 2rem;
+            }
+
+            .menu-category.active {
+                background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+                font-weight: 600;
+                box-shadow: inset 3px 0 0 var(--tertiary);
+            }
+
+            .menu-category-icon {
+                font-size: 1.5rem;
+                width: 40px;
+                text-align: center;
+            }
+
+            .menu-category-name {
+                flex: 1;
+                font-size: 1rem;
+            }
+
+            .menu-category-count {
+                background: rgba(0, 0, 0, 0.1);
+                padding: 0.25rem 0.75rem;
+                border-radius: 20px;
+                font-size: 0.875rem;
+            }
+
+            .menu-category.active .menu-category-count {
+                background: rgba(255, 255, 255, 0.3);
+            }
+            /* .category-pill {
                 background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                 color: white;
                 padding: 12px 30px;
@@ -503,6 +564,34 @@
             .category-pill.active {
                 background: linear-gradient(135deg, var(--secondary) 0%, var(--tertiary) 100%);
                 transform: scale(1.1);
+            } */
+
+            /* Content avec sidebar */
+            .main-content-with-sidebar {
+                margin-left: 280px;
+                transition: margin-left 0.3s ease;
+            }
+
+            .main-content-with-sidebar.full-width {
+                margin-left: 0;
+            }
+
+            /* Toggle button pour mobile */
+            .sidebar-toggle {
+                display: none;
+                position: fixed;
+                left: 20px;
+                bottom: 100px;
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+                border-radius: 50%;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 999;
+                box-shadow: 0 10px 30px rgba(30, 64, 175, 0.4);
             }
 
             /* Responsive */
@@ -535,6 +624,23 @@
 
                 .step-text {
                     font-size: 0.875rem;
+                }
+
+                .sidebar-menu {
+                    width: 100%;
+                    transform: translateX(-100%);
+                }
+
+                .sidebar-menu.show {
+                    transform: translateX(0);
+                }
+
+                .main-content-with-sidebar {
+                    margin-left: 0 !important;
+                }
+
+                .sidebar-toggle {
+                    display: flex;
                 }
             }
         </style>
