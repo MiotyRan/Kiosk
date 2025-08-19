@@ -99,7 +99,7 @@
             <div class="flex items-center space-x-6">
                 <div class="text-right">
                     <div id="current-time" class="text-xl font-bold text-gray-800">14:32:15</div>
-                    <div class="text-sm text-gray-600">Aujourd'hui</div>
+                    <div id="current-date" class="text-sm text-gray-600">Aujourd'hui</div>
                 </div>
                 <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 rounded-xl text-white font-semibold shadow-lg">
                     👤 Marie - Caisse 1
@@ -703,6 +703,8 @@
             const now = new Date();
             document.getElementById('current-time').textContent = 
                 now.toLocaleTimeString('fr-FR');
+            document.getElementById('current-date').textContent =
+                now.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
         }
 
         // Initialisation
