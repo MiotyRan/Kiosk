@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Caisse - Brasserie Claouey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .order-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .order-card-hover:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .calc-btn-effect {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .calc-btn-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .calc-btn-effect:active {
+            transform: translateY(0);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .status-animation {
+            animation: statusPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes statusPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Header -->
+    <!-- <header class="glass-effect m-4 rounded-2xl p-6 shadow-2xl"> -->
+    <header class="glass-effect m-2 rounded-2xl p-4 shadow-2xl">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-xl shadow-lg">
+                    <span class="text-2xl">🍺</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Brasserie Claouey</h1>
+                    <p class="text-gray-600 font-medium">Système de Caisse</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="text-right">
+                    <div id="current-time" class="text-xl font-bold text-gray-800">14:32:15</div>
+                    <div class="text-sm text-gray-600">Aujourd'hui</div>
+                </div>
+                <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 rounded-xl text-white font-semibold shadow-lg">
+                    👤 Marie - Caisse 1
+                </div>
+                <button class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-4 py-2 rounded-xl text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl" onclick="logout()">
+                    🚪 Déconnexion
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Dashboard -->
+    <div class="mx-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="glass-effect p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 font-medium">CA du jour</p>
+                    <p id="stat-total" class="text-3xl font-bold text-gray-800">2,847€</p>
+                </div>
+                <div class="bg-gradient-to-r from-green-400 to-green-600 p-3 rounded-xl">
+                    <span class="text-2xl">💰</span>
+                </div>
+            </div>
+            <div class="mt-4 bg-green-100 h-2 rounded-full">
+                <div class="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full" style="width: 68%;"></div>
+            </div>
+        </div>
+
+        <div class="glass-effect p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 font-medium">Commandes</p>
+                    <p id="stat-orders" class="text-3xl font-bold text-gray-800">47</p>
+                </div>
+                <div class="bg-gradient-to-r from-blue-400 to-blue-600 p-3 rounded-xl">
+                    <span class="text-2xl">📋</span>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-green-600 text-sm font-semibold">
+                <span class="mr-1">↗️</span> +12% vs hier
+            </div>
+        </div>
+
+        <div class="glass-effect p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 font-medium">En attente</p>
+                    <p id="stat-pending" class="text-3xl font-bold text-amber-600 pulse-animation">3</p>
+                </div>
+                <div class="bg-gradient-to-r from-amber-400 to-amber-600 p-3 rounded-xl">
+                    <span class="text-2xl">⏳</span>
+                </div>
+            </div>
+            <div class="mt-4 text-amber-600 text-sm font-semibold">
+                Nouveau: BC000125
+            </div>
+        </div>
+
+        <div class="glass-effect p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 font-medium">Espèces</p>
+                    <p id="stat-cash" class="text-3xl font-bold text-gray-800">1,240€</p>
+                </div>
+                <div class="bg-gradient-to-r from-purple-400 to-purple-600 p-3 rounded-xl">
+                    <span class="text-2xl">💳</span>
+                </div>
+            </div>
+            <div class="mt-4 text-gray-600 text-sm">
+                CB: 1,607€ | Autres: 0€
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <!-- <div class="mx-4 grid grid-cols-1 lg:grid-cols-3 gap-6"> -->
+    <div class="mx-4 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <!-- Orders Panel -->
+        <div class="lg:col-span-2">
+            <div class="glass-effect rounded-2xl shadow-2xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <span class="mr-3 bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">📋</span>
+                        Commandes
+                    </h2>
+                    <button class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-2 rounded-xl text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2" onclick="refreshOrders()">
+                        <span>🔄</span>
+                        <span>Actualiser</span>
+                    </button>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="flex space-x-2 mb-6 bg-gray-100 p-1 rounded-xl">
+                    <button class="tab-btn flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg" onclick="filterOrders('pending')">
+                        En attente (3)
+                    </button>
+                    <button class="tab-btn flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 text-gray-600 hover:text-gray-800 hover:bg-white" onclick="filterOrders('all')">
+                        Toutes (47)
+                    </button>
+                    <button class="tab-btn flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 text-gray-600 hover:text-gray-800 hover:bg-white" onclick="filterOrders('paid')">
+                        Payées (44)
+                    </button>
+                </div>
+
+                <!-- Orders List -->
+                <div class="space-y-4 max-h-96 overflow-y-auto pr-2" style="scrollbar-width: thin;">
+                    <!-- Order 1 -->
+                    <div class="order-card-hover bg-white border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-blue-400" onclick="selectOrder(this, 'BC000123', 25.50)" data-status="pending">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-lg font-bold text-lg">
+                                    BC000123
+                                </div>
+                                <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold status-animation">
+                                    À encaisser
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-800">25.50€</div>
+                                <div class="text-gray-500 text-sm">Il y a 5 min</div>
+                            </div>
+                        </div>
+                        <div class="text-gray-600 bg-gray-50 p-3 rounded-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div>2× Burger Classic</div>
+                                <div>1× Frites</div>
+                                <div>2× Coca-Cola</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <span class="mr-2">👤</span>
+                                <span>Table 12</span>
+                            </div>
+                            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                En préparation
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order 2 -->
+                    <div class="order-card-hover bg-white border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-blue-400" onclick="selectOrder(this, 'BC000124', 18.00)" data-status="pending">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-3 py-1 rounded-lg font-bold text-lg">
+                                    BC000124
+                                </div>
+                                <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold status-animation">
+                                    À encaisser
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-800">18.00€</div>
+                                <div class="text-gray-500 text-sm">Il y a 8 min</div>
+                            </div>
+                        </div>
+                        <div class="text-gray-600 bg-gray-50 p-3 rounded-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div>1× Salade César</div>
+                                <div>1× Eau minérale</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <span class="mr-2">👤</span>
+                                <span>Table 8</span>
+                            </div>
+                            <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                Prêt
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order 3 -->
+                    <div class="order-card-hover bg-white border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-blue-400" onclick="selectOrder(this, 'BC000125', 42.80)" data-status="pending">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-3 py-1 rounded-lg font-bold text-lg">
+                                    BC000125
+                                </div>
+                                <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold status-animation">
+                                    À encaisser
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-800">42.80€</div>
+                                <div class="text-gray-500 text-sm">Il y a 12 min</div>
+                            </div>
+                        </div>
+                        <div class="text-gray-600 bg-gray-50 p-3 rounded-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div>1× Entrecôte</div>
+                                <div>1× Fish & Chips</div>
+                                <div class="md:col-span-2">2× Bière pression</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <span class="mr-2">👤</span>
+                                <span>Table 15</span>
+                            </div>
+                            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                En préparation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cash Register Panel -->
+        <div class="lg:col-span-1">
+            <div class="glass-effect rounded-2xl shadow-2xl p-6 sticky top-4">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="mr-3 bg-gradient-to-r from-emerald-500 to-emerald-600 p-2 rounded-lg">💰</span>
+                    Encaissement
+                </h2>
+
+                <!-- Total Amount Display -->
+                <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 mb-6 text-center neon-glow">
+                    <div class="text-emerald-400 text-sm font-semibold mb-2 uppercase tracking-wider">Total à payer</div>
+                    <div id="total-amount" class="text-4xl font-bold text-white font-mono">0.00€</div>
+                </div>
+
+                <!-- Quick Amounts -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button class="calc-btn-effect bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg" onclick="setAmount(10)">10€</button>
+                    <button class="calc-btn-effect bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg" onclick="setAmount(20)">20€</button>
+                    <button class="calc-btn-effect bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg" onclick="setAmount(50)">50€</button>
+                    <button class="calc-btn-effect bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg" onclick="setAmount(100)">100€</button>
+                </div>
+
+                <!-- Calculator -->
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(1)">1</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(2)">2</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(3)">3</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(4)">4</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(5)">5</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(6)">6</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(7)">7</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(8)">8</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(9)">9</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit('.')">.</button>
+                    <button class="calc-btn-effect bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-400 font-bold py-4 rounded-xl shadow-md text-xl" onclick="addDigit(0)">0</button>
+                    <button class="calc-btn-effect bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-4 rounded-xl shadow-md text-xl" onclick="clearAmount()">C</button>
+                </div>
+
+                <!-- Received Amount Display -->
+                <div class="bg-gray-100 border-2 border-gray-200 rounded-xl p-4 mb-4 text-center">
+                    <div class="text-gray-600 text-sm font-semibold mb-1">Montant reçu</div>
+                    <div id="received-amount" class="text-2xl font-bold text-gray-800 font-mono">0.00€</div>
+                </div>
+
+                <!-- Change Display -->
+                <div id="change-display" class="bg-gradient-to-r from-emerald-100 to-emerald-200 border-2 border-emerald-300 rounded-xl p-4 mb-6 text-center hidden">
+                    <div class="text-emerald-700 text-sm font-semibold mb-1">Monnaie à rendre</div>
+                    <div id="change-amount" class="text-3xl font-bold text-emerald-800 font-mono">0.00€</div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all duration-200" onclick="calculateChange()">
+                        🧮 Calculer monnaie
+                    </button>
+                    <button id="validate-btn" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" onclick="validatePayment()" disabled>
+                        ✅ Valider paiement
+                    </button>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="mt-6 pt-6 border-t-2 border-gray-200">
+                    <p class="text-gray-600 font-semibold mb-4 text-center">Autres moyens de paiement</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition-all duration-200" onclick="payByCard()">
+                            💳 Carte
+                        </button>
+                        <button class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition-all duration-200" onclick="payByTicket()">
+                            🎫 Ticket
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="glass-effect rounded-3xl p-8 max-w-md w-full mx-4 slide-in">
+            <div class="text-center mb-6">
+                <div class="text-6xl mb-4">✅</div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Paiement encaissé !</h2>
+                <p class="text-gray-600">Transaction effectuée avec succès</p>
+            </div>
+            <div id="payment-details" class="bg-gray-50 rounded-xl p-4 mb-6 space-y-2 text-sm"></div>
+            <button class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all duration-200" onclick="closeModal()">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // État global
+        let selectedOrder = null;
+        let orderAmount = 0;
+        let receivedAmount = 0;
+        let inputString = '';
+
+        // Configuration API
+        const API_URL = 'http://37.59.104.101:8001';
+
+        // Sélectionner une commande
+        function selectOrder(element, orderId, amount) {
+            // Retirer la sélection précédente
+            document.querySelectorAll('.order-card-hover').forEach(card => {
+                card.classList.remove('border-blue-500', 'bg-blue-50');
+                card.classList.add('border-gray-200');
+            });
+            
+            // Sélectionner la nouvelle commande
+            element.classList.remove('border-gray-200');
+            element.classList.add('border-blue-500', 'bg-blue-50');
+            selectedOrder = orderId;
+            orderAmount = amount;
+            
+            // Mettre à jour l'affichage avec animation
+            document.getElementById('total-amount').style.transform = 'scale(1.1)';
+            document.getElementById('total-amount').textContent = amount.toFixed(2) + '€';
+            setTimeout(() => {
+                document.getElementById('total-amount').style.transform = 'scale(1)';
+            }, 200);
+            
+            // Réinitialiser
+            clearAmount();
+        }
+
+        // Ajouter un chiffre
+        function addDigit(digit) {
+            if (digit === '.' && inputString.includes('.')) return;
+            
+            inputString += digit;
+            receivedAmount = parseFloat(inputString) || 0;
+            document.getElementById('received-amount').textContent = receivedAmount.toFixed(2) + '€';
+        }
+
+        // Montant rapide
+        function setAmount(amount) {
+            inputString = amount.toString();
+            receivedAmount = amount;
+            document.getElementById('received-amount').textContent = amount.toFixed(2) + '€';
+            setTimeout(() => calculateChange(), 100);
+        }
+
+        // Effacer montant
+        function clearAmount() {
+            inputString = '';
+            receivedAmount = 0;
+            document.getElementById('received-amount').textContent = '0.00€';
+            document.getElementById('change-display').classList.add('hidden');
+            document.getElementById('validate-btn').disabled = true;
+            document.getElementById('validate-btn').classList.add('opacity-50');
+        }
+
+        // Calculer la monnaie
+        function calculateChange() {
+            if (!selectedOrder) {
+                showNotification('⚠️ Veuillez sélectionner une commande', 'warning');
+                return;
+            }
+
+            if (receivedAmount < orderAmount) {
+                showNotification('❌ Montant insuffisant !', 'error');
+                return;
+            }
+
+            const change = receivedAmount - orderAmount;
+            document.getElementById('change-amount').textContent = change.toFixed(2) + '€';
+            document.getElementById('change-display').classList.remove('hidden');
+            document.getElementById('validate-btn').disabled = false;
+            document.getElementById('validate-btn').classList.remove('opacity-50');
+        }
+
+        // Valider le paiement
+        async function validatePayment() {
+            if (!selectedOrder) return;
+
+            const change = receivedAmount - orderAmount;
+            
+            // Afficher le modal de succès
+            document.getElementById('payment-details').innerHTML = `
+                <div class="flex justify-between"><span class="font-semibold">Commande:</span><span>${selectedOrder}</span></div>
+                <div class="flex justify-between"><span class="font-semibold">Montant:</span><span>${orderAmount.toFixed(2)}€</span></div>
+                <div class="flex justify-between"><span class="font-semibold">Reçu:</span><span>${receivedAmount.toFixed(2)}€</span></div>
+                <div class="flex justify-between text-emerald-600"><span class="font-semibold">Rendu:</span><span class="font-bold">${change.toFixed(2)}€</span></div>
+                <div class="flex justify-between text-blue-600"><span class="font-semibold">Ticket:</span><span>Impression en cours...</span></div>
+            `;
+            document.getElementById('success-modal').classList.remove('hidden');
+            
+            // Marquer la commande comme payée
+            const orderCard = document.querySelector('.border-blue-500');
+            if (orderCard) {
+                orderCard.classList.add('opacity-60');
+                orderCard.querySelector('.status-animation').textContent = 'Payée';
+                orderCard.querySelector('.status-animation').className = 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold';
+            }
+            
+            // Réinitialiser
+            selectedOrder = null;
+            orderAmount = 0;
+            clearAmount();
+            document.getElementById('total-amount').textContent = '0.00€';
+            
+            // Son de validation
+            playNotificationSound();
+        }
+
+        // Fermer le modal
+        function closeModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        // Paiement par carte
+        function payByCard() {
+            if (!selectedOrder) {
+                showNotification('⚠️ Veuillez sélectionner une commande', 'warning');
+                return;
+            }
+            showNotification('💳 Redirection vers terminal de paiement...', 'info');
+        }
+
+        // Paiement par ticket restaurant
+        function payByTicket() {
+            if (!selectedOrder) {
+                showNotification('⚠️ Veuillez sélectionner une commande', 'warning');
+                return;
+            }
+            showNotification('🎫 Fonction ticket restaurant en développement', 'info');
+        }
+
+        // Filtrer les commandes
+        function filterOrders(filter) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-lg');
+                btn.classList.add('text-gray-600', 'hover:text-gray-800', 'hover:bg-white');
+            });
+            event.target.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-lg');
+            event.target.classList.remove('text-gray-600', 'hover:text-gray-800', 'hover:bg-white');
+        }
+
+        // Actualiser les commandes
+        function refreshOrders() {
+            const btn = event.target;
+            btn.innerHTML = '<span>✅</span><span>Actualisé</span>';
+            setTimeout(() => {
+                btn.innerHTML = '<span>🔄</span><span>Actualiser</span>';
+            }, 2000);
+        }
+
+        // Déconnexion
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                showNotification('👋 Déconnexion...', 'info');
+            }
+        }
+
+        // Afficher notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg transition-all duration-300 transform translate-x-full`;
+            
+            const colors = {
+                info: 'bg-blue-500 text-white',
+                success: 'bg-emerald-500 text-white',
+                warning: 'bg-amber-500 text-white',
+                error: 'bg-red-500 text-white'
+            };
+            
+            notification.className += ` ${colors[type]}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Son de notification
+        function playNotificationSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
+            audio.play().catch(() => {}); // Ignore si le navigateur bloque l'audio
+        }
+
+        // Mise à jour de l'heure
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = 
+                now.toLocaleTimeString('fr-FR');
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Raccourcis clavier
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '0' && e.key <= '9') {
+                    addDigit(e.key);
+                } else if (e.key === '.') {
+                    addDigit('.');
+                } else if (e.key === 'Enter' && !document.getElementById('validate-btn').disabled) {
+                    validatePayment();
+                } else if (e.key === 'Escape') {
+                    clearAmount();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
